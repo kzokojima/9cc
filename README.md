@@ -8,5 +8,5 @@
 
 ```
 $ docker build -t compilerbook https://www.sigbus.info/compilerbook/Dockerfile
-$ docker run --rm -it -v $PWD:/home/user/work compilerbook
+$ docker run --rm -it -v $PWD:/home/user/work -w /home/user/work compilerbook
 ```
