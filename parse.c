@@ -39,6 +39,13 @@ Token *consume_ident() {
   return current;
 }
 
+bool consume_return() {
+  if (token->kind != TK_RETURN)
+    return false;
+  token = token->next;
+  return true;
+}
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char op) {
@@ -102,6 +109,12 @@ Token *tokenize() {
     if (isdigit(*p)) {
       cur = new_token(TK_NUM, cur, p, 0);
       cur->val = strtol(p, &p, 10);
+      continue;
+    }
+
+    if (strncmp(p, "return", 6) == 0 && !isalnum(p[6]) && p[6] != '_') {
+      cur = new_token(TK_RETURN, cur, p, 0);
+      p += 6;
       continue;
     }
 
@@ -241,7 +254,16 @@ Node *expr() {
 }
 
 Node *stmt() {
-  Node *node = expr();
+  Node *node;
+
+  if (consume_return()) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_RETURN;
+    node->lhs = expr();
+  } else {
+    node = expr();
+  }
+
   expect(';');
   return node;
 }
