@@ -131,6 +131,17 @@ Token *tokenize() {
       continue;
     }
 
+    if (keyword_len = expect_keyword(p, "while")) {
+      cur = new_token(TK_WHILE, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "for")) {
+      cur = new_token(TK_FOR, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+
     if (('A' <= *p && *p <= 'Z') || *p == '_' || ('a' <= *p && *p <= 'z')) {
       size_t len = strspn(p + 1, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz");
       len++;
@@ -298,6 +309,28 @@ Node *stmt() {
     node->lhs = expr();
   } else if (consume_token(TK_IF)) {
     return if_stmt();
+  } else if (consume_token(TK_WHILE)) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_WHILE;
+    if (!consume("("))
+      error_at(token->str, "'('ではありません");
+    node->lhs = expr();
+    if (!consume(")"))
+      error_at(token->str, "')'ではありません");
+    node->rhs = expr();
+  } else if (consume_token(TK_FOR)) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_FOR;
+    if (!consume("("))
+      error_at(token->str, "'('ではありません");
+    node->for_clause1 = expr();
+    expect(';');
+    node->for_expression2 = expr();
+    expect(';');
+    node->for_expression3 = expr();
+    if (!consume(")"))
+      error_at(token->str, "')'ではありません");
+    node->rhs = expr();
   } else {
     node = expr();
   }

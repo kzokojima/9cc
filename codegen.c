@@ -51,7 +51,33 @@ void gen(Node *node) {
     if (node->els)
       gen(node->els);
     printf("Lend%d:\n", lavel_no);
-    return;  
+    return;
+  case ND_WHILE:
+    lavel_no = s_lavel_no;
+    s_lavel_no++;
+    printf("Lbegin%d:\n", lavel_no);
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  Lend%d\n", lavel_no);
+    gen(node->rhs);
+    printf("  jmp Lbegin%d\n", lavel_no);
+    printf("Lend%d:\n", lavel_no);
+    return;
+  case ND_FOR:
+    lavel_no = s_lavel_no;
+    s_lavel_no++;
+    gen(node->for_clause1);
+    printf("Lbegin%d:\n", lavel_no);
+    gen(node->for_expression2);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  Lend%d\n", lavel_no);
+    gen(node->rhs);
+    gen(node->for_expression3);
+    printf("  jmp Lbegin%d\n", lavel_no);
+    printf("Lend%d:\n", lavel_no);
+    return;
   }
 
   gen(node->lhs);

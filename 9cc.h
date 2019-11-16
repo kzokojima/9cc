@@ -19,6 +19,8 @@ typedef enum {
   ND_LVAR,    // ローカル変数
   ND_RETURN,  // return
   ND_IF,      // if
+  ND_WHILE,   // while
+  ND_FOR,     // for
 } NodeKind;
 
 typedef struct Node Node;
@@ -28,6 +30,9 @@ struct Node {
   Node *lhs;
   Node *rhs;
   Node *els;  // else
+  Node *for_clause1;      // for
+  Node *for_expression2;  // for
+  Node *for_expression3;  // for
   int val;
   int offset;
 };
@@ -40,6 +45,8 @@ typedef enum {
   TK_RETURN,   // return
   TK_IF,       // if
   TK_ELSE,     // else
+  TK_WHILE,    // while
+  TK_FOR,      // for
   TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
 
