@@ -31,19 +31,12 @@ bool consume(char *op) {
   return true;
 }
 
-Token *consume_ident() {
-  if (token->kind != TK_IDENT)
-    return NULL;
+Token *consume_token(TokenKind kind) {
+  if (token->kind != kind)
+    return false;
   Token *current = token;
   token = token->next;
   return current;
-}
-
-bool consume_return() {
-  if (token->kind != TK_RETURN)
-    return false;
-  token = token->next;
-  return true;
 }
 
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める。
@@ -78,12 +71,21 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
   return tok;
 }
 
+int expect_keyword(char *p, char *keyword) {
+  int len = strlen(keyword);
+  if (strncmp(p, keyword, len) == 0 && !isalnum(p[len]) && p[len] != '_') {
+    return len;
+  }
+  return 0;
+}
+
 // 入力文字列pをトークナイズしてそれを返す
 Token *tokenize() {
   char *p = user_input;
   Token head;
   head.next = NULL;
   Token *cur = &head;
+  int keyword_len;
 
   while (*p) {
     // 空白文字をスキップ
@@ -112,9 +114,20 @@ Token *tokenize() {
       continue;
     }
 
-    if (strncmp(p, "return", 6) == 0 && !isalnum(p[6]) && p[6] != '_') {
+    if (keyword_len = expect_keyword(p, "return")) {
       cur = new_token(TK_RETURN, cur, p, 0);
-      p += 6;
+      p += keyword_len;
+      continue;
+    }
+
+    if (keyword_len = expect_keyword(p, "if")) {
+      cur = new_token(TK_IF, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "else")) {
+      cur = new_token(TK_ELSE, cur, p, 0);
+      p += keyword_len;
       continue;
     }
 
@@ -155,7 +168,7 @@ Node *primary() {
     return node;
   }
 
-  Token *tok = consume_ident();
+  Token *tok = consume_token(TK_IDENT);
   if (tok) {
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
@@ -253,13 +266,38 @@ Node *expr() {
   Node *node = assign();
 }
 
+Node *if_stmt() {
+  Node *node;
+
+  node = calloc(1, sizeof(Node));
+  node->kind = ND_IF;
+  if (!consume("("))
+    error_at(token->str, "'('ではありません");
+  node->lhs = expr();
+  if (!consume(")"))
+    error_at(token->str, "')'ではありません");
+  node->rhs = expr();
+  expect(';');
+  if (consume_token(TK_ELSE)) {
+    if (consume_token(TK_IF))   // else if
+      node->els = if_stmt();
+    else {
+      node->els = expr();
+      expect(';');
+    }
+  }
+  return node;
+}
+
 Node *stmt() {
   Node *node;
 
-  if (consume_return()) {
+  if (consume_token(TK_RETURN)) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
+  } else if (consume_token(TK_IF)) {
+    return if_stmt();
   } else {
     node = expr();
   }

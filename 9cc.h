@@ -18,6 +18,7 @@ typedef enum {
   ND_ASSIGN,  // =
   ND_LVAR,    // ローカル変数
   ND_RETURN,  // return
+  ND_IF,      // if
 } NodeKind;
 
 typedef struct Node Node;
@@ -26,6 +27,7 @@ struct Node {
   NodeKind kind;
   Node *lhs;
   Node *rhs;
+  Node *els;  // else
   int val;
   int offset;
 };
@@ -36,6 +38,8 @@ typedef enum {
   TK_IDENT,    // 識別子
   TK_NUM,      // 整数トークン
   TK_RETURN,   // return
+  TK_IF,       // if
+  TK_ELSE,     // else
   TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
 
