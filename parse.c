@@ -103,7 +103,7 @@ Token *tokenize() {
       continue;
     }
 
-    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=') {
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}') {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
@@ -277,38 +277,27 @@ Node *expr() {
   Node *node = assign();
 }
 
-Node *if_stmt() {
-  Node *node;
-
-  node = calloc(1, sizeof(Node));
-  node->kind = ND_IF;
-  if (!consume("("))
-    error_at(token->str, "'('ではありません");
-  node->lhs = expr();
-  if (!consume(")"))
-    error_at(token->str, "')'ではありません");
-  node->rhs = expr();
-  expect(';');
-  if (consume_token(TK_ELSE)) {
-    if (consume_token(TK_IF))   // else if
-      node->els = if_stmt();
-    else {
-      node->els = expr();
-      expect(';');
-    }
-  }
-  return node;
-}
-
 Node *stmt() {
   Node *node;
+  Node *current;
 
   if (consume_token(TK_RETURN)) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_RETURN;
     node->lhs = expr();
   } else if (consume_token(TK_IF)) {
-    return if_stmt();
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_IF;
+    if (!consume("("))
+      error_at(token->str, "'('ではありません");
+    node->lhs = expr();
+    if (!consume(")"))
+      error_at(token->str, "')'ではありません");
+    node->rhs = stmt();
+    if (consume_token(TK_ELSE)) {
+      node->els = stmt();
+    }
+    return node;
   } else if (consume_token(TK_WHILE)) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_WHILE;
@@ -317,7 +306,8 @@ Node *stmt() {
     node->lhs = expr();
     if (!consume(")"))
       error_at(token->str, "')'ではありません");
-    node->rhs = expr();
+    node->rhs = stmt();
+    return node;
   } else if (consume_token(TK_FOR)) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_FOR;
@@ -330,7 +320,17 @@ Node *stmt() {
     node->for_expression3 = expr();
     if (!consume(")"))
       error_at(token->str, "')'ではありません");
-    node->rhs = expr();
+    node->rhs = stmt();
+    return node;
+  } else if (consume("{")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_BLOCK;
+    current = node;
+    while (!consume("}")) {
+      current->stmt = stmt();
+      current = current->stmt;
+    }
+    return node;
   } else {
     node = expr();
   }

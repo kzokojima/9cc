@@ -63,4 +63,13 @@ try 128  "a=2; while (a<100) a=a*2; return a;"
 # for
 try 55  "n = 0; for (i = 0; i <= 10; i = i + 1) n = n + i; return n;"
 
+# block
+try 42 "{ return 42; }"
+try 42 "{ a=42; return a; }"
+try 42 "{ a = 2; { b = 40; { return a+b; }}}"
+try 3  "a=0; b=0; if (1) { a=1; b=2; } else { a=2; b=4; } return a+b;"
+try 6  "a=0; b=0; if (0) { a=1; b=2; } else { a=2; b=4; } return a+b;"
+try 40 "a=2; b=3; while (a<10) { a=a*2; b=b*2; } return a+b;"
+try 65 "n = 0; for (i = 1; i <= 10; i = i + 1) { n = n + i; a = i; } return n+a;"
+
 echo OK

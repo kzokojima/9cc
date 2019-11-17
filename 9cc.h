@@ -21,6 +21,7 @@ typedef enum {
   ND_IF,      // if
   ND_WHILE,   // while
   ND_FOR,     // for
+  ND_BLOCK,   // { ... }
 } NodeKind;
 
 typedef struct Node Node;
@@ -33,6 +34,7 @@ struct Node {
   Node *for_clause1;      // for
   Node *for_expression2;  // for
   Node *for_expression3;  // for
+  Node *stmt;             // 次の文
   int val;
   int offset;
 };
