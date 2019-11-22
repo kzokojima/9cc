@@ -30,6 +30,8 @@ int main(int argc, char **argv) {
     return 1;
   }
 
+  printf("#%s\n", argv[1]);
+
   // トークナイズする
   user_input = argv[1];
   token = tokenize();

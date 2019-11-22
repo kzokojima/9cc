@@ -103,7 +103,8 @@ Token *tokenize() {
       continue;
     }
 
-    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' || *p == '{' || *p == '}') {
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='
+        || *p == '{' || *p == '}' || *p == ',') {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
@@ -181,6 +182,26 @@ Node *primary() {
 
   Token *tok = consume_token(TK_IDENT);
   if (tok) {
+    // 関数呼び出し
+    if (consume("(")) {
+      Node *node = calloc(1, sizeof(Node));
+      node->kind = ND_FN;
+      node->name = tok->str;
+      node->len = tok->len;
+      if (consume(")"))
+        return node;
+      node->lhs = expr();
+      Node *current = node->lhs;
+      for (;;) {
+        if (!consume(",")) {
+          expect(')');
+          return node;
+        }
+        current->next = expr();
+        current = current->next;
+      }
+    }
+
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_LVAR;
 
@@ -325,10 +346,13 @@ Node *stmt() {
   } else if (consume("{")) {
     node = calloc(1, sizeof(Node));
     node->kind = ND_BLOCK;
-    current = node;
+    if (consume("}"))
+      return node;
+    node->lhs = stmt();
+    current = node->lhs;
     while (!consume("}")) {
-      current->stmt = stmt();
-      current = current->stmt;
+      current->next = stmt();
+      current = current->next;
     }
     return node;
   } else {

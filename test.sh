@@ -4,7 +4,7 @@ try() {
   input="$2"
 
   ./9cc "$input" > tmp.s
-  gcc -o tmp tmp.s
+  gcc -o tmp tmp.s fn.o
   ./tmp
   actual="$?"
 
@@ -69,9 +69,21 @@ try 55  "n = 0; for (i = 0; i <= 10; i = i + 1) n = n + i; return n;"
 try 42 "{ return 42; }"
 try 42 "{ a=42; return a; }"
 try 42 "{ a = 2; { b = 40; { return a+b; }}}"
+try 42 "{ a = 2; { b = 40; {c = 0;} { return a+b+c; }}}"
 try 3  "a=0; b=0; if (1) { a=1; b=2; } else { a=2; b=4; } return a+b;"
 try 6  "a=0; b=0; if (0) { a=1; b=2; } else { a=2; b=4; } return a+b;"
 try 40 "a=2; b=3; while (a<10) { a=a*2; b=b*2; } return a+b;"
 try 65 "n = 0; for (i = 1; i <= 10; i = i + 1) { n = n + i; a = i; } return n+a;"
+
+# function
+try 0 "foo(); return 0;"
+try 42 "a=foo(); return a;"
+try 42 "a=add2(2, 40); return a;"
+try 42 "a=add2(1 + 1, 40); return a;"
+try 42 "a=add2(1 + 1, 2 * 20); return a;"
+try 21 "a=add6(1, 2, 3, 4, 5, 6); return a;"
+try 42 "a=add2(2, add2(20, 20)); return a;"
+try 42 "a=add2(2, add2(add2(10, 10), 20)); return a;"
+try 42 "a=add2(2, add2(add2(10, 10), add2(10, 10))); return a;"
 
 echo OK

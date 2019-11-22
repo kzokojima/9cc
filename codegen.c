@@ -80,13 +80,31 @@ void gen(Node *node) {
     printf("Lend%d:\n", lavel_no);
     return;
   case ND_BLOCK:
-    current = node->stmt;
+    current = node->lhs;
     while (current) {
       gen(current);
       printf("  pop rax\n");
-      current = current->stmt;
+      current = current->next;
     }
     return;
+  case ND_FN: {
+    char *registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+    int i;
+    int len = sizeof registers / sizeof registers[0];
+    current = node->lhs;
+    for (i = 0; i < len && current; i++) {
+      gen(current);
+      current = current->next;
+    }
+    current = node->lhs;
+    for (; 0 < i ; i--) {
+      printf("  pop %s\n", registers[i - 1]);
+      current = current->next;
+    }
+    printf("  call %1$.*2$s\n", node->name, node->len);
+    printf("  push rax\n");
+    return;
+  }
   }
 
   gen(node->lhs);
