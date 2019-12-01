@@ -5,7 +5,7 @@ void gen_lval(Node *node) {
     error("代入の左辺値が変数ではありません");
   
   printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n", node->offset);
+  printf("  sub rax, %d\n", node->offset + 8);
   printf("  push rax\n");
 }
 
@@ -13,6 +13,9 @@ void gen(Node *node) {
   static int s_lavel_no = 1;
   int lavel_no;
   Node *current;
+  char *registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+  int registers_len = sizeof registers / sizeof registers[0];
+  int i;
 
   switch (node->kind) {
   case ND_NUM:
@@ -91,11 +94,8 @@ void gen(Node *node) {
     printf("  push rax\n");
     return;
   case ND_FN: {
-    char *registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
-    int i;
-    int len = sizeof registers / sizeof registers[0];
     current = node->lhs;
-    for (i = 0; i < len && current; i++) {
+    for (i = 0; i < registers_len && current; i++) {
       gen(current);
       current = current->next;
     }
@@ -113,6 +113,33 @@ void gen(Node *node) {
     printf("  push rax\n");
     return;
   }
+  case ND_FN_DEF:
+    printf(".global %1$.*2$s\n", node->name, node->len);
+    printf("%1$.*2$s:\n", node->name, node->len);
+
+    // プロローグ
+    // 変数の領域を確保する
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    if (node->lvar_size) {
+      printf("  sub rsp, %d\n", node->lvar_size);
+    }
+
+    // パラメータ
+    current = node->lhs;
+    for (i = 0; i < registers_len && current; i++) {
+      printf("  mov [rbp - %d], %s\n", current->offset + 8, registers[i]);
+      current = current->next;
+    }
+
+    gen(node->rhs);
+
+    // エピローグ
+    // 最後の式の結果がRAXに残っているのでそれが返り値になる
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
+    printf("  ret\n");
+    return;
   }
 
   gen(node->lhs);

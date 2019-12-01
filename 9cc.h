@@ -23,6 +23,7 @@ typedef enum {
   ND_FOR,     // for
   ND_BLOCK,   // { ... }
   ND_FN,      // foo(...)
+  ND_FN_DEF,  // foo(...) { ... }
 } NodeKind;
 
 typedef struct Node Node;
@@ -40,6 +41,7 @@ struct Node {
   int offset;
   char *name; // 変数の名前
   int len;    // 名前の長さ
+  int lvar_size;  // ローカル変数サイズ
 };
 
 // トークンの種類

@@ -363,9 +363,43 @@ Node *stmt() {
   return node;
 }
 
+Node *function_definition() {
+  Node *node;
+  Token *tok = consume_token(TK_IDENT);
+  if (tok) {
+    expect('(');
+    locals = NULL;
+    node = calloc(1, sizeof(Node));
+    node->kind = ND_FN_DEF;
+    node->name = tok->str;
+    node->len = tok->len;
+    if (!consume(")")) {
+      // パラメーター
+      node->lhs = expr();
+      Node *current = node->lhs;
+      for (;;) {
+        if (consume(",")) {
+          current->next = primary();
+          current = current->next;
+        } else {
+          expect(')');
+          break;
+        }
+      }
+    }
+    node->rhs = stmt();
+    if (locals) {
+      node->lvar_size = locals->offset + 8;
+    }
+    return node;
+  } else {
+    error_at(token->str, "識別子ではありません");
+  }
+}
+
 void program() {
   int i = 0;
   while (!at_eof())
-    code[i++] = stmt();
+    code[i++] = function_definition();
   code[i] = NULL;
 }

@@ -3,9 +3,17 @@ try() {
   expected="$1"
   input="$2"
 
-  ./9cc "$input" > tmp.s
-  gcc -o tmp tmp.s fn.o
-  ./tmp
+  try2 $expected "main(){ $input }"
+}
+
+try2() {
+  expected="$1"
+  input="$2"
+
+  echo "$input" > try/tmp.c
+  ./9cc try/tmp.c > try/tmp.s
+  gcc -o try/tmp try/tmp.s fn.o
+  ./try/tmp
   actual="$?"
 
   if [ "$actual" = "$expected" ]; then
@@ -15,6 +23,8 @@ try() {
     exit 1
   fi
 }
+
+mkdir -p try
 
 try 0 "0;"
 try 42 "42;"
@@ -85,5 +95,11 @@ try 21 "a=add6(1, 2, 3, 4, 5, 6); return a;"
 try 42 "a=add2(2, add2(20, 20)); return a;"
 try 42 "a=add2(2, add2(add2(10, 10), 20)); return a;"
 try 42 "a=add2(2, add2(add2(10, 10), add2(10, 10))); return a;"
+
+try2 42 "main() { return fn(); } fn() { return 42; }"
+try2 42 "main() { return fn(); } fn() { a=42; return a; }"
+try2 42 "main() { return fn(); } fn() { a=add2(2, add2(add2(10, 10), add2(10, 10))); return a; }"
+try2 42 "main() { return fn(42); } fn(x) { return x; }"
+try2 0 'main() {print_int(1);fn(1, 2);} fn(x, y) {print_int(y);if (x + y <= 100)fn(y, x + y);}'
 
 echo OK
