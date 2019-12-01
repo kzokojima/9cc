@@ -51,6 +51,8 @@ void gen(Node *node) {
     printf("Lelse%d:\n", lavel_no);
     if (node->els)
       gen(node->els);
+    else
+      printf("  push rax\n");
     printf("Lend%d:\n", lavel_no);
     return;
   case ND_WHILE:
@@ -86,6 +88,7 @@ void gen(Node *node) {
       printf("  pop rax\n");
       current = current->next;
     }
+    printf("  push rax\n");
     return;
   case ND_FN: {
     char *registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
