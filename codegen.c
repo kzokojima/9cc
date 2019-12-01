@@ -101,7 +101,12 @@ void gen(Node *node) {
       printf("  pop %s\n", registers[i - 1]);
       current = current->next;
     }
+    printf("  push r15\n");
+    printf("  mov r15, rsp\n");
+    printf("  and spl, 0xF0\n");
     printf("  call %1$.*2$s\n", node->name, node->len);
+    printf("  mov rsp, r15\n");
+    printf("  pop r15\n");
     printf("  push rax\n");
     return;
   }
