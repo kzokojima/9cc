@@ -3,7 +3,7 @@
 void gen_lval(Node *node) {
   if (node->kind != ND_LVAR)
     error("代入の左辺値が変数ではありません");
-  
+
   printf("  mov rax, rbp\n");
   printf("  sub rax, %d\n", node->offset + 8);
   printf("  push rax\n");
@@ -41,7 +41,7 @@ void gen(Node *node) {
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
-    return;  
+    return;
   case ND_IF:
     lavel_no = s_lavel_no;
     s_lavel_no++;
@@ -183,6 +183,6 @@ void gen(Node *node) {
     printf("  movzb rax, al\n");
     break;
   }
-  
+
   printf("  push rax\n");
 }

@@ -248,9 +248,9 @@ Node *add() {
   Node *node = mul();
 
   for (;;) {
-    if (consume("+")) 
+    if (consume("+"))
       node = new_node(ND_ADD, node, mul());
-    else if (consume("-")) 
+    else if (consume("-"))
       node = new_node(ND_SUB, node, mul());
     else
       return node;
@@ -261,13 +261,13 @@ Node *relational() {
   Node *node = add();
 
   for (;;) {
-    if (consume("<=")) 
+    if (consume("<="))
       node = new_node(ND_LE, node, add());
-    else if (consume("<")) 
+    else if (consume("<"))
       node = new_node(ND_LT, node, add());
-    else if (consume(">=")) 
+    else if (consume(">="))
       node = new_node(ND_LE, add(), node);
-    else  if (consume(">")) 
+    else  if (consume(">"))
       node = new_node(ND_LT, add(), node);
     else
       return node;
@@ -278,9 +278,9 @@ Node *equality() {
   Node *node = relational();
 
   for (;;) {
-    if (consume("==")) 
+    if (consume("=="))
       node = new_node(ND_EQ, node, relational());
-    else if (consume("!=")) 
+    else if (consume("!="))
       node = new_node(ND_NE, node, relational());
     else
       return node;
