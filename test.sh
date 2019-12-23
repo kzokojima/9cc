@@ -102,4 +102,7 @@ try2 42 "main() { return fn(); } fn() { a=add2(2, add2(add2(10, 10), add2(10, 10
 try2 42 "main() { return fn(42); } fn(x) { return x; }"
 try2 0 'main() {print_int(1);fn(1, 2);} fn(x, y) {print_int(y);if (x + y <= 100)fn(y, x + y);}'
 
+# pointer
+try2 42 'main() { i = 42; p = &i; return *p; }'
+
 echo OK
