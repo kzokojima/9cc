@@ -149,6 +149,9 @@ void gen(Node *node) {
     printf("  mov rax, [rax]\n");
     printf("  push rax\n");
     return;
+  case ND_DEFVAR:
+    printf("  push rax\n");
+    return;
   }
 
   gen(node->lhs);

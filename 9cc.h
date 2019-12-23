@@ -26,6 +26,7 @@ typedef enum {
   ND_FN_DEF,  // foo(...) { ... }
   ND_ADDR,    // &var
   ND_DEREF,   // *ptr
+  ND_DEFVAR,  // int var
 } NodeKind;
 
 typedef struct Node Node;

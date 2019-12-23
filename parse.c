@@ -39,6 +39,16 @@ Token *consume_token(TokenKind kind) {
   return current;
 }
 
+Token *comsume_ident(char *str) {
+  if (token->kind != TK_IDENT)
+    return false;
+  if (memcmp(token->str, str, strlen(str)))
+    return false;
+  Token *current = token;
+  token = token->next;
+  return current;
+}
+
 // 次のトークンが期待している記号のときには、トークンを1つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char op) {
@@ -209,13 +219,7 @@ Node *primary() {
     if (lvar) {
       node->offset = lvar->offset;
     } else {
-      lvar = calloc(1, sizeof(LVar));
-      lvar->next = locals;
-      lvar->name = tok->str;
-      lvar->len = tok->len;
-      lvar->offset = (locals) ? locals->offset + 8 : 0;
-      node->offset = lvar->offset;
-      locals = lvar;
+      error_at(tok->str, "未定義の変数です");
     }
     return node;
   }
@@ -302,6 +306,28 @@ Node *expr() {
   Node *node = assign();
 }
 
+// 変数定義
+Node *defvar() {
+  Node *node;
+  Token *tok = consume_token(TK_IDENT);
+  LVar *lvar = find_lvar(tok);
+  if (lvar) {
+    error_at(tok->str, "定義済みの変数です");
+  }
+  node = calloc(1, sizeof(Node));
+  node->kind = ND_DEFVAR;
+  lvar = calloc(1, sizeof(LVar));
+  lvar->next = locals;
+  lvar->name = tok->str;
+  lvar->len = tok->len;
+  lvar->offset = (locals) ? locals->offset + 8 : 0;
+  node->name = tok->str;
+  node->len = tok->len;
+  node->offset = lvar->offset;
+  locals = lvar;
+  return node;
+}
+
 Node *stmt() {
   Node *node;
   Node *current;
@@ -359,6 +385,8 @@ Node *stmt() {
       current = current->next;
     }
     return node;
+  } else if (comsume_ident("int")) {
+    node = defvar();
   } else {
     node = expr();
   }
@@ -369,6 +397,9 @@ Node *stmt() {
 
 Node *function_definition() {
   Node *node;
+  if (!comsume_ident("int")) {
+    error_at(token->str, "定義ではありません");
+  }
   Token *tok = consume_token(TK_IDENT);
   if (tok) {
     expect('(');
@@ -379,11 +410,17 @@ Node *function_definition() {
     node->len = tok->len;
     if (!consume(")")) {
       // パラメーター
-      node->lhs = expr();
+      if (!comsume_ident("int")) {
+        error_at(token->str, "定義ではありません");
+      }
+      node->lhs = defvar();
       Node *current = node->lhs;
       for (;;) {
         if (consume(",")) {
-          current->next = primary();
+          if (!comsume_ident("int")) {
+            error_at(token->str, "定義ではありません");
+          }
+          current->next = defvar();
           current = current->next;
         } else {
           expect(')');
