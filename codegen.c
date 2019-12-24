@@ -1,12 +1,20 @@
 #include "9cc.h"
 
+void emit(char *fmt, ...) {
+  va_list ap;
+  va_start(ap, fmt);
+  vfprintf(stdout, fmt, ap);
+  fprintf(stdout, "\n");
+}
+
 void gen_lval(Node *node) {
   if (node->kind != ND_LVAR)
     error("代入の左辺値が変数ではありません");
 
-  printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n", node->offset + 8);
-  printf("  push rax\n");
+  emit("# var:%1$.*2$s", node->name, node->len);
+  emit("  mov rax, rbp");
+  emit("  sub rax, %d", node->offset + 8);
+  emit("  push rax");
 }
 
 void gen(Node *node) {
@@ -19,79 +27,79 @@ void gen(Node *node) {
 
   switch (node->kind) {
   case ND_NUM:
-    printf("  push %d\n", node->val);
+    emit("  push %d", node->val);
     return;
   case ND_LVAR:
     gen_lval(node);
-    printf("  pop rax\n");
-    printf("  mov rax, [rax]\n");
-    printf("  push rax\n");
+    emit("  pop rax");
+    emit("  mov rax, [rax]");
+    emit("  push rax");
     return;
   case ND_ASSIGN:
     gen_lval(node->lhs);
     gen(node->rhs);
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
-    printf("  mov [rax], rdi\n");
-    printf("  push rdi\n");
+    emit("  pop rdi");
+    emit("  pop rax");
+    emit("  mov [rax], rdi");
+    emit("  push rdi");
     return;
   case ND_RETURN:
     gen(node->lhs);
-    printf("  pop rax\n");
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret\n");
+    emit("  pop rax");
+    emit("  mov rsp, rbp");
+    emit("  pop rbp");
+    emit("  ret");
     return;
   case ND_IF:
     lavel_no = s_lavel_no;
     s_lavel_no++;
     gen(node->lhs);
-    printf("  pop rax\n");
-    printf("  cmp rax, 0\n");
-    printf("  je  Lelse%d\n", lavel_no);
+    emit("  pop rax");
+    emit("  cmp rax, 0");
+    emit("  je  Lelse%d", lavel_no);
     gen(node->rhs);
-    printf("  jmp Lend%d\n", lavel_no);
-    printf("Lelse%d:\n", lavel_no);
+    emit("  jmp Lend%d", lavel_no);
+    emit("Lelse%d:", lavel_no);
     if (node->els)
       gen(node->els);
     else
-      printf("  push rax\n");
-    printf("Lend%d:\n", lavel_no);
+      emit("  push rax");
+    emit("Lend%d:", lavel_no);
     return;
   case ND_WHILE:
     lavel_no = s_lavel_no;
     s_lavel_no++;
-    printf("Lbegin%d:\n", lavel_no);
+    emit("Lbegin%d:", lavel_no);
     gen(node->lhs);
-    printf("  pop rax\n");
-    printf("  cmp rax, 0\n");
-    printf("  je  Lend%d\n", lavel_no);
+    emit("  pop rax");
+    emit("  cmp rax, 0");
+    emit("  je  Lend%d", lavel_no);
     gen(node->rhs);
-    printf("  jmp Lbegin%d\n", lavel_no);
-    printf("Lend%d:\n", lavel_no);
+    emit("  jmp Lbegin%d", lavel_no);
+    emit("Lend%d:", lavel_no);
     return;
   case ND_FOR:
     lavel_no = s_lavel_no;
     s_lavel_no++;
     gen(node->for_clause1);
-    printf("Lbegin%d:\n", lavel_no);
+    emit("Lbegin%d:", lavel_no);
     gen(node->for_expression2);
-    printf("  pop rax\n");
-    printf("  cmp rax, 0\n");
-    printf("  je  Lend%d\n", lavel_no);
+    emit("  pop rax");
+    emit("  cmp rax, 0");
+    emit("  je  Lend%d", lavel_no);
     gen(node->rhs);
     gen(node->for_expression3);
-    printf("  jmp Lbegin%d\n", lavel_no);
-    printf("Lend%d:\n", lavel_no);
+    emit("  jmp Lbegin%d", lavel_no);
+    emit("Lend%d:", lavel_no);
     return;
   case ND_BLOCK:
     current = node->lhs;
     while (current) {
       gen(current);
-      printf("  pop rax\n");
+      emit("  pop rax");
       current = current->next;
     }
-    printf("  push rax\n");
+    emit("  push rax");
     return;
   case ND_FN: {
     current = node->lhs;
@@ -101,34 +109,34 @@ void gen(Node *node) {
     }
     current = node->lhs;
     for (; 0 < i ; i--) {
-      printf("  pop %s\n", registers[i - 1]);
+      emit("  pop %s", registers[i - 1]);
       current = current->next;
     }
-    printf("  push r15\n");
-    printf("  mov r15, rsp\n");
-    printf("  and spl, 0xF0\n");
-    printf("  call %1$.*2$s\n", node->name, node->len);
-    printf("  mov rsp, r15\n");
-    printf("  pop r15\n");
-    printf("  push rax\n");
+    emit("  push r15");
+    emit("  mov r15, rsp");
+    emit("  and spl, 0xF0");
+    emit("  call %1$.*2$s", node->name, node->len);
+    emit("  mov rsp, r15");
+    emit("  pop r15");
+    emit("  push rax");
     return;
   }
   case ND_FN_DEF:
-    printf(".global %1$.*2$s\n", node->name, node->len);
-    printf("%1$.*2$s:\n", node->name, node->len);
+    emit(".global %1$.*2$s", node->name, node->len);
+    emit("%1$.*2$s:", node->name, node->len);
 
     // プロローグ
     // 変数の領域を確保する
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
+    emit("  push rbp");
+    emit("  mov rbp, rsp");
     if (node->lvar_size) {
-      printf("  sub rsp, %d\n", node->lvar_size);
+      emit("  sub rsp, %d", node->lvar_size);
     }
 
     // パラメータ
     current = node->lhs;
     for (i = 0; i < registers_len && current; i++) {
-      printf("  mov [rbp - %d], %s\n", current->offset + 8, registers[i]);
+      emit("  mov [rbp - %d], %s", current->offset + 8, registers[i]);
       current = current->next;
     }
 
@@ -136,65 +144,65 @@ void gen(Node *node) {
 
     // エピローグ
     // 最後の式の結果がRAXに残っているのでそれが返り値になる
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
-    printf("  ret\n");
+    emit("  mov rsp, rbp");
+    emit("  pop rbp");
+    emit("  ret");
     return;
   case ND_ADDR:
     gen_lval(node->lhs);
     return;
   case ND_DEREF:
     gen(node->lhs);
-    printf("  pop rax\n");
-    printf("  mov rax, [rax]\n");
-    printf("  push rax\n");
+    emit("  pop rax");
+    emit("  mov rax, [rax]");
+    emit("  push rax");
     return;
   case ND_DEFVAR:
-    printf("  push rax\n");
+    emit("  push rax");
     return;
   }
 
   gen(node->lhs);
   gen(node->rhs);
 
-  printf("  pop rdi\n");
-  printf("  pop rax\n");
+  emit("  pop rdi");
+  emit("  pop rax");
 
   switch (node->kind) {
   case ND_ADD:
-    printf("  add rax, rdi\n");
+    emit("  add rax, rdi");
     break;
   case ND_SUB:
-    printf("  sub rax, rdi\n");
+    emit("  sub rax, rdi");
     break;
   case ND_MUL:
-    printf("  imul rax, rdi\n");
+    emit("  imul rax, rdi");
     break;
   case ND_DIV:
-    printf("  cqo\n");
-    printf("  idiv rdi\n");
+    emit("  cqo");
+    emit("  idiv rdi");
     break;
   case ND_EQ:
-    printf("  cmp rax, rdi\n");
-    printf("  sete al\n");
-    printf("  movzb rax, al\n");
+    emit("  cmp rax, rdi");
+    emit("  sete al");
+    emit("  movzb rax, al");
     break;
   case ND_NE:
-    printf("  cmp rax, rdi\n");
-    printf("  setne al\n");
-    printf("  movzb rax, al\n");
+    emit("  cmp rax, rdi");
+    emit("  setne al");
+    emit("  movzb rax, al");
     break;
   case ND_LT:
-    printf("  cmp rax, rdi\n");
-    printf("  setl al\n");
-    printf("  movzb rax, al\n");
+    emit("  cmp rax, rdi");
+    emit("  setl al");
+    emit("  movzb rax, al");
     break;
   case ND_LE:
-    printf("  cmp rax, rdi\n");
-    printf("  setle al\n");
-    printf("  movzb rax, al\n");
+    emit("  cmp rax, rdi");
+    emit("  setle al");
+    emit("  movzb rax, al");
     break;
   }
 
-  printf("  push rax\n");
+  emit("  push rax");
 }
