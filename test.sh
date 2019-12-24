@@ -104,5 +104,8 @@ try2 0 'int main() {print_int(1);fn(1, 2);} int fn(int x, int y) {print_int(y);i
 
 # pointer
 try2 42 'int main() { int i; int p; i = 42; p = &i; return *p; }'
+try2 42 'int main() { int i; int *p; i = 42; p = &i; return *p; }'
+try2 42 'int main() { int i; int *p; p = &i; *p = 42; return i; }'
+try2 42 'int main() { int i; int *p; p = &i; fn(p); return i; } int fn (int *p) { *p = 42; }'
 
 echo OK

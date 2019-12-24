@@ -218,6 +218,8 @@ Node *primary() {
     LVar *lvar = find_lvar(tok);
     if (lvar) {
       node->offset = lvar->offset;
+      node->name = lvar->name;
+      node->len = lvar->len;
     } else {
       error_at(tok->str, "未定義の変数です");
     }
@@ -309,7 +311,18 @@ Node *expr() {
 // 変数定義
 Node *defvar() {
   Node *node;
+  Type *type = calloc(1, sizeof(Type));
+  type->ty = INT;
+  while (consume("*")) {
+    Type *t = calloc(1, sizeof(Type));
+    t->ty = PTR;
+    t->ptr_to = type;
+    type = t;
+  }
   Token *tok = consume_token(TK_IDENT);
+  if (!tok) {
+    error_at(token->str, "識別子ではありません");
+  }
   LVar *lvar = find_lvar(tok);
   if (lvar) {
     error_at(tok->str, "定義済みの変数です");

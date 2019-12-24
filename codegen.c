@@ -36,7 +36,11 @@ void gen(Node *node) {
     emit("  push rax");
     return;
   case ND_ASSIGN:
-    gen_lval(node->lhs);
+    if (node->lhs->kind == ND_DEREF) {
+      gen(node->lhs->lhs);
+    } else {
+      gen_lval(node->lhs);
+    }
     gen(node->rhs);
     emit("  pop rdi");
     emit("  pop rax");
