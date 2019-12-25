@@ -52,6 +52,7 @@ struct Node {
   char *name; // 変数の名前
   int len;    // 名前の長さ
   int lvar_size;  // ローカル変数サイズ
+  Type *type;
 };
 
 // トークンの種類
@@ -64,6 +65,7 @@ typedef enum {
   TK_ELSE,     // else
   TK_WHILE,    // while
   TK_FOR,      // for
+  TK_SIZEOF,   // sizeof
   TK_EOF,      // 入力の終わりを表すトークン
 } TokenKind;
 

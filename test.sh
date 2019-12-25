@@ -108,4 +108,14 @@ try2 42 'int main() { int i; int *p; i = 42; p = &i; return *p; }'
 try2 42 'int main() { int i; int *p; p = &i; *p = 42; return i; }'
 try2 42 'int main() { int i; int *p; p = &i; fn(p); return i; } int fn (int *p) { *p = 42; }'
 
+# sizeof
+try2 4 'int main() { int i; return sizeof(i); }'
+try2 4 'int main() { int i; return sizeof(i + 1); }'
+try2 8 'int main() { int *p; return sizeof(p); }'
+try2 8 'int main() { int *p; return sizeof(p + 1); }'
+try2 4 'int main() { int *p; return sizeof(*p); }'
+try2 4 'int main() { return sizeof(1); }'
+try2 4 'int main() { return sizeof(1 + 1); }'
+try2 4 'int main() { return sizeof(sizeof(1)); }'
+
 echo OK

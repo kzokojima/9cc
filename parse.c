@@ -152,6 +152,11 @@ Token *tokenize() {
       p += keyword_len;
       continue;
     }
+    if (keyword_len = expect_keyword(p, "sizeof")) {
+      cur = new_token(TK_SIZEOF, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
 
     if (('A' <= *p && *p <= 'Z') || *p == '_' || ('a' <= *p && *p <= 'z')) {
       size_t len = strspn(p + 1, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz");
@@ -181,6 +186,39 @@ Node *new_node_num(int val) {
   node->kind = ND_NUM;
   node->val = val;
   return node;
+}
+
+// 型を検出
+int detect_type(Node *node) {
+  switch (node->kind) {
+  case ND_NUM:
+  case ND_MUL:
+  case ND_DIV:
+  case ND_EQ:
+  case ND_NE:
+  case ND_LT:
+  case ND_LE:
+  case ND_DEREF:
+    return INT;
+  case ND_ADDR:
+    return PTR;
+  case ND_LVAR:
+    return node->type->ty;
+  case ND_ADD:
+  case ND_SUB:
+    {
+      int ty = detect_type(node->lhs);
+      if (ty == PTR)
+        return ty;
+      ty = detect_type(node->rhs);
+      if (ty == PTR)
+        return ty;
+
+      return INT;
+    }
+  }
+
+  return -1;
 }
 
 Node *primary() {
@@ -220,6 +258,7 @@ Node *primary() {
       node->offset = lvar->offset;
       node->name = lvar->name;
       node->len = lvar->len;
+      node->type = lvar->type;
     } else {
       error_at(tok->str, "未定義の変数です");
     }
@@ -238,6 +277,15 @@ Node *unary() {
     return new_node(ND_ADDR, primary(), NULL);
   if (consume("*"))
     return new_node(ND_DEREF, primary(), NULL);
+  if (consume_token(TK_SIZEOF)) {
+    int ty = detect_type(unary());
+    if (ty == INT)
+      return new_node_num(4);
+    else if (ty == PTR)
+      return new_node_num(8);
+
+    error("データ型が不明です");
+  }
   return primary();
 }
 
@@ -334,6 +382,7 @@ Node *defvar() {
   lvar->name = tok->str;
   lvar->len = tok->len;
   lvar->offset = (locals) ? locals->offset + 8 : 0;
+  lvar->type = type;
   node->name = tok->str;
   node->len = tok->len;
   node->offset = lvar->offset;
