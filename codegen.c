@@ -13,7 +13,7 @@ void gen_lval(Node *node) {
 
   emit("# var:%1$.*2$s", node->name, node->len);
   emit("  mov rax, rbp");
-  emit("  sub rax, %d", node->offset + 8);
+  emit("  sub rax, %d", node->offset);
   emit("  push rax");
 }
 
@@ -22,6 +22,7 @@ void gen(Node *node) {
   int lavel_no;
   Node *current;
   char *registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+  char *registers_32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
   int registers_len = sizeof registers / sizeof registers[0];
   int i;
 
@@ -32,19 +33,62 @@ void gen(Node *node) {
   case ND_LVAR:
     gen_lval(node);
     emit("  pop rax");
-    emit("  mov rax, [rax]");
+    if (node->type->ty == ARRAY) {
+        // do nothing
+    } else {
+      if (get_type_size(node->type->ty) == 4)
+        emit("  mov eax, [rax]");
+      else
+        emit("  mov rax, [rax]");
+    }
     emit("  push rax");
     return;
   case ND_ASSIGN:
     if (node->lhs->kind == ND_DEREF) {
-      gen(node->lhs->lhs);
+      if (node->lhs->lhs->kind == ND_LVAR) {
+        if (node->lhs->lhs->type->ty == ARRAY) {
+          // *array = ...;
+          gen_lval(node->lhs->lhs);
+        } else {
+          // *pointer = ...;
+          gen(node->lhs->lhs);
+        }
+      } else if (node->lhs->lhs->kind == ND_ADD) {
+        // *(array + 1) = ...;
+        gen_lval(node->lhs->lhs->lhs);
+        gen(node->lhs->lhs->rhs);
+        emit("  pop rdi");
+        emit("  pop rax");
+        emit("  imul rdi, %d", get_type_size(node->lhs->lhs->lhs->type->ptr_to->ty));
+        emit("  add rax, rdi");
+        emit("  push rax");
+      } else {
+        error("代入式が不正です");
+      }
     } else {
       gen_lval(node->lhs);
     }
     gen(node->rhs);
     emit("  pop rdi");
     emit("  pop rax");
-    emit("  mov [rax], rdi");
+    if (node->lhs->kind == ND_DEREF) {
+      if (node->lhs->lhs->kind == ND_LVAR) {
+        if (get_type_size(node->lhs->lhs->type->ty) == 8)
+          emit("  mov [rax], rdi");
+        else
+          emit("  mov [rax], edi");
+      } else if (node->lhs->lhs->kind == ND_ADD) {
+        if (get_type_size(node->lhs->lhs->lhs->type->ptr_to->ty) == 8)
+          emit("  mov [rax], rdi");
+        else
+          emit("  mov [rax], edi");
+      }
+    } else {
+      if (get_type_size(node->lhs->type->ty) == 8)
+        emit("  mov [rax], rdi");
+      else
+        emit("  mov [rax], edi");
+    }
     emit("  push rdi");
     return;
   case ND_RETURN:
@@ -140,7 +184,10 @@ void gen(Node *node) {
     // パラメータ
     current = node->lhs;
     for (i = 0; i < registers_len && current; i++) {
-      emit("  mov [rbp - %d], %s", current->offset + 8, registers[i]);
+      if (get_type_size(current->type->ty) == 8)
+        emit("  mov [rbp - %d], %s", current->offset, registers[i]);
+      else
+        emit("  mov [rbp - %d], %s", current->offset, registers_32[i]);
       current = current->next;
     }
 
@@ -174,6 +221,11 @@ void gen(Node *node) {
 
   switch (node->kind) {
   case ND_ADD:
+    if (node->lhs->kind == ND_LVAR && (node->lhs->type->ty == ARRAY || node->lhs->type->ty == PTR)) {
+      emit("  imul rdi, %d", get_type_size(node->lhs->type->ptr_to->ty));
+    } else if (node->rhs->kind == ND_LVAR && (node->rhs->type->ty == ARRAY || node->rhs->type->ty == PTR)) {
+      emit("  imul rax, %d", get_type_size(node->rhs->type->ptr_to->ty));
+    }
     emit("  add rax, rdi");
     break;
   case ND_SUB:

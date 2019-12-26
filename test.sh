@@ -103,7 +103,6 @@ try2 42 "int main() { return fn(42); } int fn(int x) { return x; }"
 try2 0 'int main() {print_int(1);fn(1, 2);} int fn(int x, int y) {print_int(y);if (x + y <= 100)fn(y, x + y);}'
 
 # pointer
-try2 42 'int main() { int i; int p; i = 42; p = &i; return *p; }'
 try2 42 'int main() { int i; int *p; i = 42; p = &i; return *p; }'
 try2 42 'int main() { int i; int *p; p = &i; *p = 42; return i; }'
 try2 42 'int main() { int i; int *p; p = &i; fn(p); return i; } int fn (int *p) { *p = 42; }'
@@ -117,5 +116,18 @@ try2 4 'int main() { int *p; return sizeof(*p); }'
 try2 4 'int main() { return sizeof(1); }'
 try2 4 'int main() { return sizeof(1 + 1); }'
 try2 4 'int main() { return sizeof(sizeof(1)); }'
+
+# array
+try2 3 'int main() {
+  int a[2];
+  *a = 1;
+  *(a + 1) = 2;
+  int *p;
+  p = a;
+  return *p + *(p + 1);
+}'
+try2 40 'int main() { int a[10]; return sizeof(a); }'
+try2 8 "int main() { int a[10]; return fn(a); } int fn(int a[10]) { return sizeof(a); }"
+try2 2 "int main() { int a[10]; *(a + 1) = 2; return fn(a); } int fn(int a[10]) { return *(a + 1); }"
 
 echo OK

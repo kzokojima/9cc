@@ -32,8 +32,9 @@ typedef enum {
 typedef struct Type Type;
 
 struct Type {
-  enum { INT, PTR } ty;
+  enum { INT, PTR, ARRAY } ty;
   struct Type *ptr_to;
+  size_t array_size;
 };
 
 typedef struct Node Node;
@@ -88,7 +89,7 @@ struct LVar {
   char *name; // 変数の名前
   int len;    // 名前の長さ
   int offset; // RBPからのオフセット
-  Type *type;
+  Type *type; // データ型
 };
 
 // ローカル変数
@@ -108,3 +109,4 @@ extern Token *tokenize();
 extern Node *expr();
 extern void program();
 extern void gen(Node *node);
+int get_type_size(int type);

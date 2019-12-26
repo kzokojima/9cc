@@ -12,6 +12,18 @@ Node *code[100];
 // ローカル変数
 LVar *locals;
 
+// データ型のサイズ
+int get_type_size(int type) {
+  switch (type) {
+  case INT:
+    return 4;
+  case PTR:
+    return 8;
+  default:
+    return -1;
+  }
+}
+
 // 変数を名前で検索する。見つからなかった場合はNULLを返す。
 LVar *find_lvar(Token *tok) {
   for (LVar *var = locals; var; var = var->next)
@@ -114,7 +126,7 @@ Token *tokenize() {
     }
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='
-        || *p == '{' || *p == '}' || *p == ',' || *p == '&') {
+        || *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' || *p == ']') {
       cur = new_token(TK_RESERVED, cur, p++, 1);
       continue;
     }
@@ -278,12 +290,13 @@ Node *unary() {
   if (consume("*"))
     return new_node(ND_DEREF, primary(), NULL);
   if (consume_token(TK_SIZEOF)) {
-    int ty = detect_type(unary());
-    if (ty == INT)
-      return new_node_num(4);
-    else if (ty == PTR)
-      return new_node_num(8);
-
+    Node *node = unary();
+    if (node->kind == ND_LVAR && node->type->ty == ARRAY) {
+      return new_node_num(get_type_size(node->type->ptr_to->ty) * node->type->array_size);
+    }
+    int ty = detect_type(node);
+    if (ty != -1)
+      return new_node_num(get_type_size(ty));
     error("データ型が不明です");
   }
   return primary();
@@ -381,11 +394,22 @@ Node *defvar() {
   lvar->next = locals;
   lvar->name = tok->str;
   lvar->len = tok->len;
-  lvar->offset = (locals) ? locals->offset + 8 : 0;
+  lvar->offset = (locals ? locals->offset : 0) + get_type_size(type->ty);
   lvar->type = type;
+  if (consume("[")) {
+    // 配列定義
+    type = calloc(1, sizeof(Type));
+    type->ty = ARRAY;
+    type->array_size = expect_number();
+    type->ptr_to = lvar->type;
+    lvar->offset = (locals ? locals->offset : 0) + type->array_size * get_type_size(lvar->type->ty);
+    lvar->type = type;
+    expect(']');
+  }
   node->name = tok->str;
   node->len = tok->len;
   node->offset = lvar->offset;
+  node->type = lvar->type;
   locals = lvar;
   return node;
 }
@@ -472,27 +496,34 @@ Node *function_definition() {
     node->len = tok->len;
     if (!consume(")")) {
       // パラメーター
-      if (!comsume_ident("int")) {
-        error_at(token->str, "定義ではありません");
-      }
-      node->lhs = defvar();
-      Node *current = node->lhs;
+      Node *params = NULL;
+      Node *current;
       for (;;) {
-        if (consume(",")) {
-          if (!comsume_ident("int")) {
-            error_at(token->str, "定義ではありません");
-          }
+        if (!comsume_ident("int")) {
+          error_at(token->str, "定義ではありません");
+        }
+        if (params == NULL) {
+          params = defvar();
+          current = params;
+        } else {
           current->next = defvar();
           current = current->next;
-        } else {
+        }
+        if (current->type->ty == ARRAY) {
+          locals->type->ty = PTR;
+          locals->offset = locals->offset + get_type_size(PTR);
+          current->offset = locals->offset;
+        }
+        if (!consume(",")) {
           expect(')');
           break;
         }
       }
+      node->lhs = params;
     }
     node->rhs = stmt();
     if (locals) {
-      node->lvar_size = locals->offset + 8;
+      node->lvar_size = locals->offset;
     }
     return node;
   } else {
