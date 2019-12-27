@@ -271,6 +271,11 @@ Node *primary() {
       node->name = lvar->name;
       node->len = lvar->len;
       node->type = lvar->type;
+      if (consume("[")) {
+        // 配列添字
+        node = new_node(ND_DEREF, new_node(ND_ADD, node, new_node_num(expect_number())), NULL);
+        expect(']');
+      }
     } else {
       error_at(tok->str, "未定義の変数です");
     }

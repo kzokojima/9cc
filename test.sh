@@ -129,5 +129,6 @@ try2 3 'int main() {
 try2 40 'int main() { int a[10]; return sizeof(a); }'
 try2 8 "int main() { int a[10]; return fn(a); } int fn(int a[10]) { return sizeof(a); }"
 try2 2 "int main() { int a[10]; *(a + 1) = 2; return fn(a); } int fn(int a[10]) { return *(a + 1); }"
+try2 42 "int main() { int a[10]; a[3] = 42; return a[3]; }"
 
 echo OK
