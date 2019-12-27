@@ -56,6 +56,8 @@ try 250 "int a; a=1000;a/4;"
 try 250 "int a; int b; a=1000;b=1000;return (a+b)/8;"
 # overflow
 try 20 "int _;int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;int y;int z;_=1;a=2;b=3;c=4;d=5;e=6;f=7;g=8;h=9;i=10;j=11;k=12;l=13;m=14;n=15;o=16;p=17;q=18;r=19;s=20;t=21;u=22;v=23;w=24;x=25;y=26;z=27;_+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v;"
+try2 0 'int main() { return (add2(3000000000, 3000000000) - 3000000000) == 3000000000; }'
+try2 1 'int main() { return (add2(1000000000, 1000000000) - 1000000000) == 1000000000; }'
 try 42 "int a; a=42;return a;0;"
 
 # if
