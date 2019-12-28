@@ -27,6 +27,7 @@ typedef enum {
   ND_ADDR,    // &var
   ND_DEREF,   // *ptr
   ND_DEFVAR,  // int var
+  ND_GVAR,    // グローバル変数
 } NodeKind;
 
 typedef struct Type Type;

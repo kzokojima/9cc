@@ -12,6 +12,9 @@ Node *code[100];
 // ローカル変数
 LVar *locals;
 
+// グローバル変数
+LVar *globals;
+
 // データ型のサイズ
 int get_type_size(int type) {
   switch (type) {
@@ -27,6 +30,14 @@ int get_type_size(int type) {
 // 変数を名前で検索する。見つからなかった場合はNULLを返す。
 LVar *find_lvar(Token *tok) {
   for (LVar *var = locals; var; var = var->next)
+    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+      return var;
+  return NULL;
+}
+
+// 変数を名前で検索する。見つからなかった場合はNULLを返す。
+LVar *find_gvar(Token *tok) {
+  for (LVar *var = globals; var; var = var->next)
     if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
       return var;
   return NULL;
@@ -215,6 +226,7 @@ int detect_type(Node *node) {
   case ND_ADDR:
     return PTR;
   case ND_LVAR:
+  case ND_GVAR:
     return node->type->ty;
   case ND_ADD:
   case ND_SUB:
@@ -263,21 +275,27 @@ Node *primary() {
     }
 
     Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_LVAR;
-
     LVar *lvar = find_lvar(tok);
     if (lvar) {
+      // ローカル変数
+      node->kind = ND_LVAR;
       node->offset = lvar->offset;
       node->name = lvar->name;
       node->len = lvar->len;
       node->type = lvar->type;
-      if (consume("[")) {
-        // 配列添字
-        node = new_node(ND_DEREF, new_node(ND_ADD, node, new_node_num(expect_number())), NULL);
-        expect(']');
-      }
+    } else if (lvar = find_gvar(tok)) {
+      // グローバル変数
+      node->kind = ND_GVAR;
+      node->name = lvar->name;
+      node->len = lvar->len;
+      node->type = lvar->type;
     } else {
       error_at(tok->str, "未定義の変数です");
+    }
+    if (consume("[")) {
+      // 配列添字
+      node = new_node(ND_DEREF, new_node(ND_ADD, node, new_node_num(expect_number())), NULL);
+      expect(']');
     }
     return node;
   }
@@ -296,7 +314,7 @@ Node *unary() {
     return new_node(ND_DEREF, primary(), NULL);
   if (consume_token(TK_SIZEOF)) {
     Node *node = unary();
-    if (node->kind == ND_LVAR && node->type->ty == ARRAY) {
+    if ((node->kind == ND_LVAR || node->kind == ND_GVAR) && node->type->ty == ARRAY) {
       return new_node_num(get_type_size(node->type->ptr_to->ty) * node->type->array_size);
     }
     int ty = detect_type(node);
@@ -374,9 +392,8 @@ Node *expr() {
   Node *node = assign();
 }
 
-// 変数定義
-Node *defvar() {
-  Node *node;
+// データ型
+Type *parse_type() {
   Type *type = calloc(1, sizeof(Type));
   type->ty = INT;
   while (consume("*")) {
@@ -385,6 +402,13 @@ Node *defvar() {
     t->ptr_to = type;
     type = t;
   }
+  return type;
+}
+
+// 変数定義
+Node *defvar() {
+  Node *node;
+  Type *type = parse_type();
   Token *tok = consume_token(TK_IDENT);
   if (!tok) {
     error_at(token->str, "識別子ではありません");
@@ -491,9 +515,11 @@ Node *function_definition() {
   if (!comsume_ident("int")) {
     error_at(token->str, "定義ではありません");
   }
+  Type *type = parse_type();
   Token *tok = consume_token(TK_IDENT);
   if (tok) {
-    expect('(');
+    if (consume("(")) {
+      // 関数定義
     locals = NULL;
     node = calloc(1, sizeof(Node));
     node->kind = ND_FN_DEF;
@@ -531,6 +557,31 @@ Node *function_definition() {
       node->lvar_size = locals->offset;
     }
     return node;
+    } else {
+      // グローバル変数定義
+      node = calloc(1, sizeof(Node));
+      node->kind = ND_DEFVAR;
+      LVar *lvar = calloc(1, sizeof(LVar));
+      lvar->next = globals;
+      lvar->name = tok->str;
+      lvar->len = tok->len;
+      lvar->type = type;
+      if (consume("[")) {
+        // 配列定義
+        type = calloc(1, sizeof(Type));
+        type->ty = ARRAY;
+        type->array_size = expect_number();
+        type->ptr_to = lvar->type;
+        lvar->type = type;
+        expect(']');
+      }
+      expect(';');
+      node->name = tok->str;
+      node->len = tok->len;
+      node->type = lvar->type;
+      globals = lvar;
+      return node;
+    }
   } else {
     error_at(token->str, "識別子ではありません");
   }

@@ -133,4 +133,13 @@ try2 8 "int main() { int a[10]; return fn(a); } int fn(int a[10]) { return sizeo
 try2 2 "int main() { int a[10]; *(a + 1) = 2; return fn(a); } int fn(int a[10]) { return *(a + 1); }"
 try2 42 "int main() { int a[10]; a[3] = 42; return a[3]; }"
 
+# global variable
+try2 42 "int g_i; int main() { g_i = 42; return g_i; }"
+try2 42 "int g_i; int main() { g_i = 42; return fn(g_i); } int fn(int a) { return a; }"
+try2 42 "int g_i; int main() { int *p; p = &g_i; *p = 42; return g_i; }"
+try2 4 "int g_i; int main() { return sizeof(g_i); }"
+try2 42 "int *g_p; int main() { int i; g_p = &i; *g_p = 42; return i; }"
+try2 42 "int *g_p; int main() { int i; g_p = &i; i = 42; return *g_p; }"
+try2 42 "int g_a[10]; int main() { g_a[10] = 42; return g_a[10]; }"
+
 echo OK

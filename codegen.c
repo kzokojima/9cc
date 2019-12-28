@@ -17,8 +17,27 @@ void gen_lval(Node *node) {
   emit("  push rax");
 }
 
+void gen_gval(Node *node) {
+  if (node->kind != ND_GVAR)
+    error("代入の左辺値が変数ではありません");
+
+  emit("  lea rax, %1$.*2$s[rip]", node->name, node->len);
+  emit("  push rax");
+}
+
+void gen_val(Node *node) {
+  if (node->kind == ND_LVAR) {
+    gen_lval(node);
+  } else if (node->kind == ND_GVAR) {
+    gen_gval(node);
+  } else {
+    error("代入の左辺値が変数ではありません");
+  }
+}
+
 void gen(Node *node) {
   static int s_lavel_no = 1;
+  static int s_in_function = 0;
   int lavel_no;
   Node *current;
   char *registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -31,7 +50,8 @@ void gen(Node *node) {
     emit("  push %d", node->val);
     return;
   case ND_LVAR:
-    gen_lval(node);
+  case ND_GVAR:
+    gen_val(node);
     emit("  pop rax");
     if (node->type->ty == ARRAY) {
         // do nothing
@@ -45,17 +65,17 @@ void gen(Node *node) {
     return;
   case ND_ASSIGN:
     if (node->lhs->kind == ND_DEREF) {
-      if (node->lhs->lhs->kind == ND_LVAR) {
+      if (node->lhs->lhs->kind == ND_LVAR || node->lhs->lhs->kind == ND_GVAR) {
         if (node->lhs->lhs->type->ty == ARRAY) {
           // *array = ...;
-          gen_lval(node->lhs->lhs);
+          gen_val(node->lhs->lhs);
         } else {
           // *pointer = ...;
           gen(node->lhs->lhs);
         }
       } else if (node->lhs->lhs->kind == ND_ADD) {
         // *(array + 1) = ...;
-        gen_lval(node->lhs->lhs->lhs);
+        gen_val(node->lhs->lhs->lhs);
         gen(node->lhs->lhs->rhs);
         emit("  pop rdi");
         emit("  pop rax");
@@ -65,14 +85,14 @@ void gen(Node *node) {
       } else {
         error("代入式が不正です");
       }
-    } else {
-      gen_lval(node->lhs);
+    } else if (node->lhs->kind == ND_LVAR || node->lhs->kind == ND_GVAR) {
+      gen_val(node->lhs);
     }
     gen(node->rhs);
     emit("  pop rdi");
     emit("  pop rax");
     if (node->lhs->kind == ND_DEREF) {
-      if (node->lhs->lhs->kind == ND_LVAR) {
+      if (node->lhs->lhs->kind == ND_LVAR || node->lhs->lhs->kind == ND_GVAR) {
         if (get_type_size(node->lhs->lhs->type->ty) == 8)
           emit("  mov [rax], rdi");
         else
@@ -170,6 +190,8 @@ void gen(Node *node) {
     return;
   }
   case ND_FN_DEF:
+    s_in_function = 1;
+    emit(".text");
     emit(".global %1$.*2$s", node->name, node->len);
     emit("%1$.*2$s:", node->name, node->len);
 
@@ -198,9 +220,10 @@ void gen(Node *node) {
     emit("  mov rsp, rbp");
     emit("  pop rbp");
     emit("  ret");
+    s_in_function = 0;
     return;
   case ND_ADDR:
-    gen_lval(node->lhs);
+    gen_val(node->lhs);
     return;
   case ND_DEREF:
     gen(node->lhs);
@@ -209,7 +232,17 @@ void gen(Node *node) {
     emit("  push rax");
     return;
   case ND_DEFVAR:
-    emit("  push rax");
+    if (s_in_function) {
+      emit("  push rax");
+    } else {
+      // グローバル変数
+      emit(".bss");
+      if (node->type->ty == ARRAY) {
+        emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ptr_to->ty) * node->type->array_size);
+      } else {
+        emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ty));
+      }
+    }
     return;
   }
 
@@ -221,9 +254,9 @@ void gen(Node *node) {
 
   switch (node->kind) {
   case ND_ADD:
-    if (node->lhs->kind == ND_LVAR && (node->lhs->type->ty == ARRAY || node->lhs->type->ty == PTR)) {
+    if ((node->lhs->kind == ND_LVAR || node->lhs->kind == ND_GVAR) && (node->lhs->type->ty == ARRAY || node->lhs->type->ty == PTR)) {
       emit("  imul rdi, %d", get_type_size(node->lhs->type->ptr_to->ty));
-    } else if (node->rhs->kind == ND_LVAR && (node->rhs->type->ty == ARRAY || node->rhs->type->ty == PTR)) {
+    } else if ((node->rhs->kind == ND_LVAR || node->rhs->kind == ND_GVAR) && (node->rhs->type->ty == ARRAY || node->rhs->type->ty == PTR)) {
       emit("  imul rax, %d", get_type_size(node->rhs->type->ptr_to->ty));
     }
     emit("  add rax, rdi");
