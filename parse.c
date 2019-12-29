@@ -22,6 +22,8 @@ int get_type_size(int type) {
     return 4;
   case PTR:
     return 8;
+  case CHAR:
+    return 1;
   default:
     return -1;
   }
@@ -221,8 +223,9 @@ int detect_type(Node *node) {
   case ND_NE:
   case ND_LT:
   case ND_LE:
-  case ND_DEREF:
     return INT;
+  case ND_DEREF:
+    return node->lhs->type->ptr_to->ty;
   case ND_ADDR:
     return PTR;
   case ND_LVAR:
@@ -395,7 +398,13 @@ Node *expr() {
 // データ型
 Type *parse_type() {
   Type *type = calloc(1, sizeof(Type));
+  if (comsume_ident("int")) {
   type->ty = INT;
+  } else if (comsume_ident("char")) {
+    type->ty = CHAR;
+  } else {
+    return NULL;
+  }
   while (consume("*")) {
     Type *t = calloc(1, sizeof(Type));
     t->ty = PTR;
@@ -406,9 +415,8 @@ Type *parse_type() {
 }
 
 // 変数定義
-Node *defvar() {
+Node *defvar(Type *type) {
   Node *node;
-  Type *type = parse_type();
   Token *tok = consume_token(TK_IDENT);
   if (!tok) {
     error_at(token->str, "識別子ではありません");
@@ -446,6 +454,7 @@ Node *defvar() {
 Node *stmt() {
   Node *node;
   Node *current;
+  Type *type;
 
   if (consume_token(TK_RETURN)) {
     node = calloc(1, sizeof(Node));
@@ -500,8 +509,8 @@ Node *stmt() {
       current = current->next;
     }
     return node;
-  } else if (comsume_ident("int")) {
-    node = defvar();
+  } else if (type = parse_type()) {
+    node = defvar(type);
   } else {
     node = expr();
   }
@@ -512,10 +521,10 @@ Node *stmt() {
 
 Node *function_definition() {
   Node *node;
-  if (!comsume_ident("int")) {
+  Type *type;
+  if (!(type = parse_type())) {
     error_at(token->str, "定義ではありません");
   }
-  Type *type = parse_type();
   Token *tok = consume_token(TK_IDENT);
   if (tok) {
     if (consume("(")) {
@@ -530,14 +539,14 @@ Node *function_definition() {
       Node *params = NULL;
       Node *current;
       for (;;) {
-        if (!comsume_ident("int")) {
+          if (!(type = parse_type())) {
           error_at(token->str, "定義ではありません");
         }
         if (params == NULL) {
-          params = defvar();
+            params = defvar(type);
           current = params;
         } else {
-          current->next = defvar();
+            current->next = defvar(type);
           current = current->next;
         }
         if (current->type->ty == ARRAY) {

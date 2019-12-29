@@ -142,4 +142,15 @@ try2 42 "int *g_p; int main() { int i; g_p = &i; *g_p = 42; return i; }"
 try2 42 "int *g_p; int main() { int i; g_p = &i; i = 42; return *g_p; }"
 try2 42 "int g_a[10]; int main() { g_a[10] = 42; return g_a[10]; }"
 
+# char
+try2 42 'int main() { int i; char c; i = 42; c = 1; return i; }'
+try2 42 'int main() { char *p; char c; p = &c; c = 42; return *p; }'
+try2 42 'int main() { char *p; char c; p = &c; *p = 42; return c; }'
+try2 1 'int main() { char c; return sizeof(c); }'
+try2 4 'int main() { char c; return sizeof(c + 1); }'
+try2 8 'int main() { char *p; return sizeof(p); }'
+try2 8 'int main() { char *p; return sizeof(p + 1); }'
+try2 1 'int main() { char *p; return sizeof(*p); }'
+try2 2 "int main() { char a[2]; *(a + 1) = 2; return fn(a); } int fn(char a[2]) { return *(a + 1); }"
+
 echo OK

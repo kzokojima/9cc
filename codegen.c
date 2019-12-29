@@ -56,10 +56,12 @@ void gen(Node *node) {
     if (node->type->ty == ARRAY) {
         // do nothing
     } else {
-      if (get_type_size(node->type->ty) == 4)
+      if (get_type_size(node->type->ty) == 8)
+        emit("  mov rax, [rax]");
+      else if (get_type_size(node->type->ty) == 4)
         emit("  mov eax, [rax]");
       else
-        emit("  mov rax, [rax]");
+        emit("  movsx eax, BYTE PTR [rax]");
     }
     emit("  push rax");
     return;
@@ -95,8 +97,10 @@ void gen(Node *node) {
       if (node->lhs->lhs->kind == ND_LVAR || node->lhs->lhs->kind == ND_GVAR) {
         if (get_type_size(node->lhs->lhs->type->ty) == 8)
           emit("  mov [rax], rdi");
-        else
+        else if (get_type_size(node->lhs->lhs->type->ty) == 4)
           emit("  mov [rax], edi");
+        else
+          emit("  mov [rax], dil");
       } else if (node->lhs->lhs->kind == ND_ADD) {
         if (get_type_size(node->lhs->lhs->lhs->type->ptr_to->ty) == 8)
           emit("  mov [rax], rdi");
@@ -106,8 +110,10 @@ void gen(Node *node) {
     } else {
       if (get_type_size(node->lhs->type->ty) == 8)
         emit("  mov [rax], rdi");
-      else
+      else if (get_type_size(node->lhs->type->ty) == 4)
         emit("  mov [rax], edi");
+      else
+        emit("  mov [rax], dil");
     }
     emit("  push rdi");
     return;
