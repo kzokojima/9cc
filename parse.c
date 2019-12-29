@@ -15,6 +15,10 @@ LVar *locals;
 // グローバル変数
 LVar *globals;
 
+// 文字列定数
+StringConstant *string_constants;
+int string_constants_index = 0;
+
 // データ型のサイズ
 int get_type_size(int type) {
   switch (type) {
@@ -43,6 +47,25 @@ LVar *find_gvar(Token *tok) {
     if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
       return var;
   return NULL;
+}
+
+// 文字列定数を検索する。見つからなかった場合はNULLを返す。
+StringConstant *find_string_constant(Token *tok) {
+  for (StringConstant *var = string_constants; var; var = var->next)
+    if (var->len == tok->len && !memcmp(tok->str, var->str, var->len))
+      return var;
+  return NULL;
+}
+
+StringConstant *add_string_constant(Token *tok) {
+  StringConstant *string_constant = calloc(1, sizeof(StringConstant));
+  string_constant->next = string_constants;
+  string_constant->str = tok->str;
+  string_constant->len = tok->len;
+  string_constant->index = string_constants_index;
+  string_constants = string_constant;
+  string_constants_index++;
+  return string_constant;
 }
 
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて
@@ -191,6 +214,17 @@ Token *tokenize() {
       continue;
     }
 
+    if (*p == '"') {
+      // 文字列
+      p++;
+      char *pos = strstr(p, "\"");
+      if (pos == NULL)
+        error_at(p, "トークナイズできません");
+      cur = new_token(TK_STRING, cur, p, pos - p);
+      p = pos + 1;
+      continue;
+    }
+
     error_at(p, "トークナイズできません");
   }
 
@@ -300,6 +334,19 @@ Node *primary() {
       node = new_node(ND_DEREF, new_node(ND_ADD, node, new_node_num(expect_number())), NULL);
       expect(']');
     }
+    return node;
+  }
+
+  tok = consume_token(TK_STRING);
+  if (tok) {
+    // 文字列
+    StringConstant *string_constant = find_string_constant(tok);
+    if (string_constant == NULL) {
+      string_constant = add_string_constant(tok);
+    }
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_STRING;
+    node->string_constant = string_constant;
     return node;
   }
 

@@ -7,6 +7,16 @@ void emit(char *fmt, ...) {
   fprintf(stdout, "\n");
 }
 
+void gen_string_constants() {
+  StringConstant *str = string_constants;
+  emit(".text");
+  emit(".section	.rodata");
+  while (str) {
+    emit(".LC%d:\n  .string \"%2$.*3$s\"", str->index, str->str, str->len);
+    str = str->next;
+  }
+}
+
 void gen_lval(Node *node) {
   if (node->kind != ND_LVAR)
     error("代入の左辺値が変数ではありません");
@@ -189,6 +199,7 @@ void gen(Node *node) {
     emit("  push r15");
     emit("  mov r15, rsp");
     emit("  and spl, 0xF0");
+    emit("  mov al, 0");
     emit("  call %1$.*2$s", node->name, node->len);
     emit("  mov rsp, r15");
     emit("  pop r15");
@@ -249,6 +260,10 @@ void gen(Node *node) {
         emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ty));
       }
     }
+    return;
+  case ND_STRING:
+    emit("  lea rax, .LC%d[rip]", node->string_constant->index);
+    emit("  push rax");
     return;
   }
 

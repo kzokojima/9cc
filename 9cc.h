@@ -28,6 +28,7 @@ typedef enum {
   ND_DEREF,   // *ptr
   ND_DEFVAR,  // int var
   ND_GVAR,    // グローバル変数
+  ND_STRING,  // 文字列
 } NodeKind;
 
 typedef struct Type Type;
@@ -37,6 +38,16 @@ struct Type {
   struct Type *ptr_to;
   size_t array_size;
 };
+
+// 文字列定数
+typedef struct StringConstant StringConstant;
+struct StringConstant {
+  StringConstant *next;   // 次の文字列定数かNULL
+  char *str;              // 文字列
+  int len;                // 長さ
+  int index;              // インデックス
+};
+extern StringConstant *string_constants;
 
 typedef struct Node Node;
 
@@ -55,6 +66,7 @@ struct Node {
   int len;    // 名前の長さ
   int lvar_size;  // ローカル変数サイズ
   Type *type;
+  StringConstant *string_constant;
 };
 
 // トークンの種類
@@ -69,6 +81,7 @@ typedef enum {
   TK_FOR,      // for
   TK_SIZEOF,   // sizeof
   TK_EOF,      // 入力の終わりを表すトークン
+  TK_STRING,   // 文字列
 } TokenKind;
 
 typedef struct Token Token;
@@ -109,5 +122,6 @@ extern void error_at(char *loc, char *fmt, ...);
 extern Token *tokenize();
 extern Node *expr();
 extern void program();
+extern void gen_string_constants();
 extern void gen(Node *node);
 int get_type_size(int type);

@@ -9,10 +9,11 @@ try() {
 try2() {
   expected="$1"
   input="$2"
+  gcc_opt="${3:-}"
 
   echo "$input" > try/tmp.c
   ./9cc try/tmp.c > try/tmp.s
-  gcc -o try/tmp try/tmp.s fn.o
+  gcc $gcc_opt -o try/tmp try/tmp.s fn.c
   ./try/tmp
   actual="$?"
 
@@ -22,6 +23,10 @@ try2() {
     echo "$input => $expected expected, but got $actual"
     exit 1
   fi
+}
+
+try2s() {
+  try2 "$1" "$2" "-static"
 }
 
 mkdir -p try
@@ -152,5 +157,12 @@ try2 8 'int main() { char *p; return sizeof(p); }'
 try2 8 'int main() { char *p; return sizeof(p + 1); }'
 try2 1 'int main() { char *p; return sizeof(*p); }'
 try2 2 "int main() { char a[2]; *(a + 1) = 2; return fn(a); } int fn(char a[2]) { return *(a + 1); }"
+
+# string
+try2 104 'int main() { char *p; p = "hello, world"; return *p; }'
+try2 101 'int main() { char *p; p = "hello, world"; return *(p + 1); }'
+try2s 12 'int main() { return printf("hello, world"); }'
+try2s 12 'int main() { char *p; p = "hello, world"; return printf(p); }'
+
 
 echo OK
