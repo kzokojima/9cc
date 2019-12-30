@@ -250,7 +250,36 @@ void gen(Node *node) {
     return;
   case ND_DEFVAR:
     if (s_in_function) {
-      emit("  push rax");
+      if (node->lhs) {
+        // 初期化
+        if (node->lhs->lhs->type->ty == ARRAY &&  node->lhs->rhs->kind == ND_INITIALIZER_LIST) {
+          Node *cur = node->lhs->rhs->next;
+          int offset = node->lhs->lhs->offset;
+          int size = get_type_size(node->lhs->lhs->type->ptr_to->ty);
+          while (cur != NULL) {
+            switch (size) {
+            case 1:
+              emit("  mov BYTE PTR [rbp-%d], %d", offset, cur->val);
+              break;
+            case 4:
+              emit("  mov WORD PTR [rbp-%d], %d", offset, cur->val);
+              break;
+            case 8:
+              emit("  mov QWORD PTR [rbp-%d], %d", offset, cur->val);
+              break;
+            default:
+              error("不正な初期化です");
+            }
+            offset -= size;
+            cur = cur->next;
+          }
+          emit("  push rax");
+        } else {
+          gen(node->lhs);
+        }
+      } else {
+        emit("  push rax");
+      }
     } else {
       // グローバル変数
       emit(".bss");

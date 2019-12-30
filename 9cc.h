@@ -29,6 +29,7 @@ typedef enum {
   ND_DEFVAR,  // int var
   ND_GVAR,    // グローバル変数
   ND_STRING,  // 文字列
+  ND_INITIALIZER_LIST,  // 初期化子リスト
 } NodeKind;
 
 typedef struct Type Type;

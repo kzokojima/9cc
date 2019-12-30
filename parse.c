@@ -299,6 +299,31 @@ int detect_type(Node *node) {
   return -1;
 }
 
+Node *initializer_list(int *count) {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = ND_INITIALIZER_LIST;
+  Node *current = node;
+  if (token->kind == TK_NUM) {
+  for (;;) {
+    (*count)++;
+    current->next = new_node_num(expect_number());
+    current = current->next;
+    if (!consume(",")) {
+      break;
+    }
+  }
+  } else if (token->kind == TK_STRING) {
+    Token *tok = consume_token(TK_STRING);
+    int i;
+    for (i = 0; i < tok->len; i++) {
+      (*count)++;
+      current->next = new_node_num(tok->str[i]);
+      current = current->next;
+    }
+  }
+  return node;
+}
+
 Node *primary() {
   if (consume("(")) {
     Node *node = expr();
@@ -501,11 +526,36 @@ Node *defvar(Type *type) {
     // 配列定義
     type = calloc(1, sizeof(Type));
     type->ty = ARRAY;
-    type->array_size = expect_number();
+    Token *tok_num = consume_token(TK_NUM);
+    if (tok_num)
+      type->array_size = tok_num->val;
+    else
+      type->array_size = 0;
     type->ptr_to = lvar->type;
     lvar->offset = (locals ? locals->offset : 0) + type->array_size * get_type_size(lvar->type->ty);
     lvar->type = type;
     expect(']');
+  }
+  if (consume("=")) {
+    // 初期化
+    int is_init_str = type->ty == ARRAY && type->ptr_to->ty == CHAR && token->kind == TK_STRING;
+    Node *node_lvar = calloc(1, sizeof(Node));
+    if (consume("{") || is_init_str) {
+      // 初期化子リスト
+      int count = 0;
+      node->lhs = new_node(ND_ASSIGN, node_lvar, initializer_list(&count));
+      type->array_size = count;
+      lvar->offset = (locals ? locals->offset : 0) + type->array_size * get_type_size(lvar->type->ptr_to->ty);
+      if (!is_init_str)
+      expect('}');
+    } else {
+      node->lhs = new_node(ND_ASSIGN, node_lvar, expr());
+    }
+    node_lvar->kind = ND_LVAR;
+    node_lvar->offset = lvar->offset;
+    node_lvar->name = lvar->name;
+    node_lvar->len = lvar->len;
+    node_lvar->type = lvar->type;
   }
   node->name = tok->str;
   node->len = tok->len;

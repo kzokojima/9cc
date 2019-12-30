@@ -174,5 +174,13 @@ try2s 42 'int main() {
   return 42;
 }'
 
+# initialization
+try2 42 'int main() { int i = 42; return i; }'
+try2 42 'int main() { int i = 40 + 2; return i; }'
+try2 42 'int main() { int i = add2(40, 2); return i; }'
+try2 104 'int main() { char *p = "hello, world"; return *p; }'
+try2 42 'int main() { int a[] = { 1,2,3,42 }; return *(a + 3); }'
+try2 104 'int main() { char a[] = "hello, world"; return *a; }'
+
 
 echo OK
