@@ -34,16 +34,8 @@ int get_type_size(int type) {
 }
 
 // 変数を名前で検索する。見つからなかった場合はNULLを返す。
-LVar *find_lvar(Token *tok) {
-  for (LVar *var = locals; var; var = var->next)
-    if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
-      return var;
-  return NULL;
-}
-
-// 変数を名前で検索する。見つからなかった場合はNULLを返す。
-LVar *find_gvar(Token *tok) {
-  for (LVar *var = globals; var; var = var->next)
+LVar *find_var(Token *tok, LVar *var_list) {
+  for (LVar *var = var_list; var; var = var->next)
     if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
       return var;
   return NULL;
@@ -354,7 +346,7 @@ Node *primary() {
     }
 
     Node *node = calloc(1, sizeof(Node));
-    LVar *lvar = find_lvar(tok);
+    LVar *lvar = find_var(tok, locals);
     if (lvar) {
       // ローカル変数
       node->kind = ND_LVAR;
@@ -362,7 +354,7 @@ Node *primary() {
       node->name = lvar->name;
       node->len = lvar->len;
       node->type = lvar->type;
-    } else if (lvar = find_gvar(tok)) {
+    } else if (lvar = find_var(tok, globals)) {
       // グローバル変数
       node->kind = ND_GVAR;
       node->name = lvar->name;
@@ -504,23 +496,25 @@ Type *parse_type() {
 }
 
 // 変数定義
-Node *defvar(Type *type) {
+Node *defvar(Type *type, LVar **ptr_var_list) {
+  LVar *var_list = *ptr_var_list;
   Node *node;
   Token *tok = consume_token(TK_IDENT);
   if (!tok) {
     error_at(token->str, "識別子ではありません");
   }
-  LVar *lvar = find_lvar(tok);
+  LVar *lvar = find_var(tok, locals);
   if (lvar) {
     error_at(tok->str, "定義済みの変数です");
   }
   node = calloc(1, sizeof(Node));
   node->kind = ND_DEFVAR;
   lvar = calloc(1, sizeof(LVar));
-  lvar->next = locals;
+  lvar->next = var_list;
   lvar->name = tok->str;
   lvar->len = tok->len;
-  lvar->offset = (locals ? locals->offset : 0) + get_type_size(type->ty);
+  if (ptr_var_list == &locals)
+    lvar->offset = (var_list ? var_list->offset : 0) + get_type_size(type->ty);
   lvar->type = type;
   if (consume("[")) {
     // 配列定義
@@ -532,7 +526,8 @@ Node *defvar(Type *type) {
     else
       type->array_size = 0;
     type->ptr_to = lvar->type;
-    lvar->offset = (locals ? locals->offset : 0) + type->array_size * get_type_size(lvar->type->ty);
+    if (ptr_var_list == &locals)
+      lvar->offset = (var_list ? var_list->offset : 0) + type->array_size * get_type_size(lvar->type->ty);
     lvar->type = type;
     expect(']');
   }
@@ -545,7 +540,8 @@ Node *defvar(Type *type) {
       int count = 0;
       node->lhs = new_node(ND_ASSIGN, node_lvar, initializer_list(&count));
       type->array_size = count;
-      lvar->offset = (locals ? locals->offset : 0) + type->array_size * get_type_size(lvar->type->ptr_to->ty);
+      if (ptr_var_list == &locals)
+        lvar->offset = (var_list ? var_list->offset : 0) + type->array_size * get_type_size(lvar->type->ptr_to->ty);
       if (!is_init_str)
       expect('}');
     } else {
@@ -561,7 +557,7 @@ Node *defvar(Type *type) {
   node->len = tok->len;
   node->offset = lvar->offset;
   node->type = lvar->type;
-  locals = lvar;
+  *ptr_var_list = lvar;
   return node;
 }
 
@@ -624,7 +620,7 @@ Node *stmt() {
     }
     return node;
   } else if (type = parse_type()) {
-    node = defvar(type);
+    node = defvar(type, &locals);
   } else {
     node = expr();
   }
@@ -633,7 +629,7 @@ Node *stmt() {
   return node;
 }
 
-Node *function_definition() {
+Node *global_definition() {
   Node *node;
   Type *type;
   if (!(type = parse_type())) {
@@ -657,10 +653,10 @@ Node *function_definition() {
           error_at(token->str, "定義ではありません");
         }
         if (params == NULL) {
-            params = defvar(type);
+            params = defvar(type, &locals);
           current = params;
         } else {
-            current->next = defvar(type);
+            current->next = defvar(type, &locals);
           current = current->next;
         }
         if (current->type->ty == ARRAY) {
@@ -682,27 +678,9 @@ Node *function_definition() {
     return node;
     } else {
       // グローバル変数定義
-      node = calloc(1, sizeof(Node));
-      node->kind = ND_DEFVAR;
-      LVar *lvar = calloc(1, sizeof(LVar));
-      lvar->next = globals;
-      lvar->name = tok->str;
-      lvar->len = tok->len;
-      lvar->type = type;
-      if (consume("[")) {
-        // 配列定義
-        type = calloc(1, sizeof(Type));
-        type->ty = ARRAY;
-        type->array_size = expect_number();
-        type->ptr_to = lvar->type;
-        lvar->type = type;
-        expect(']');
-      }
+      token = tok;
+      node = defvar(type, &globals);
       expect(';');
-      node->name = tok->str;
-      node->len = tok->len;
-      node->type = lvar->type;
-      globals = lvar;
       return node;
     }
   } else {
@@ -713,6 +691,6 @@ Node *function_definition() {
 void program() {
   int i = 0;
   while (!at_eof())
-    code[i++] = function_definition();
+    code[i++] = global_definition();
   code[i] = NULL;
 }
