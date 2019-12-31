@@ -397,9 +397,13 @@ Node *unary() {
   if (consume("*"))
     return new_node(ND_DEREF, primary(), NULL);
   if (consume_token(TK_SIZEOF)) {
+    Token *tok = token;
     Node *node = unary();
     if ((node->kind == ND_LVAR || node->kind == ND_GVAR) && node->type->ty == ARRAY) {
       return new_node_num(get_type_size(node->type->ptr_to->ty) * node->type->array_size);
+    } else if (tok->next->kind == TK_SIZEOF) {
+      // sizeof(sizeof(1))
+      return new_node_num(8);
     }
     int ty = detect_type(node);
     if (ty != -1)
