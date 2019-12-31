@@ -181,6 +181,11 @@ try2 42 'int main() { int i = add2(40, 2); return i; }'
 try2 104 'int main() { char *p = "hello, world"; return *p; }'
 try2 42 'int main() { int a[] = { 1,2,3,42 }; return *(a + 3); }'
 try2 104 'int main() { char a[] = "hello, world"; return *a; }'
+try2 42 'int i = 42; int main() { return i; }'
+try2 42 'int a[] = { 1,2,3,42 }; int main() { return *(a + 3); }'
+try2 104 'char a[] = "hello, world"; int main() { return *a; }'
+try2 104 'char *p = "hello, world"; int main() { return *p; }'
+try2 42 'int i = 42; int *p = &i; int main() { return *p; }'
 
 
 echo OK

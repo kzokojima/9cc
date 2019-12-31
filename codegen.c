@@ -282,11 +282,53 @@ void gen(Node *node) {
       }
     } else {
       // グローバル変数
-      emit(".bss");
       if (node->type->ty == ARRAY) {
-        emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ptr_to->ty) * node->type->array_size);
-      } else {
-        emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ty));
+        if (node->lhs) {
+          // 初期化子リスト
+          emit(".text");
+          emit("%1$.*2$s:", node->name, node->len);
+          Node *node_num = node->lhs->rhs->next;
+          int size = get_type_size(node->type->ptr_to->ty);
+          while (node_num) {
+            switch (size) {
+            case 1:
+              emit("  .byte %d", node_num->val);
+              break;
+            case 4:
+              emit("  .long %d", node_num->val);
+              break;
+            case 8:
+              emit("  .quad %d", node_num->val);
+              break;
+            }
+            node_num = node_num->next;
+          }
+        } else {
+          emit(".bss");
+          emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ptr_to->ty) * node->type->array_size);
+        }
+      } else if (node->type->ty == PTR) {
+        if (node->lhs) {
+          // 初期化
+          emit(".text");
+          if (node->lhs->rhs->kind == ND_STRING) {
+            emit("%1$.*2$s:\n  .quad .LC%3$d", node->name, node->len, node->lhs->rhs->string_constant->index);
+          } else if (node->lhs->rhs->kind == ND_ADDR) {
+            emit("%1$.*2$s:\n  .quad %3$.*4$s", node->name, node->len, node->lhs->rhs->lhs->name, node->lhs->rhs->lhs->len);
+          }
+        } else {
+          emit(".bss");
+          emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ty));
+        }
+      } else  {
+        if (node->lhs) {
+          // 初期化
+          emit(".text");
+          emit("%1$.*2$s:\n  .long %3$d", node->name, node->len, node->lhs->rhs->val);
+        } else {
+          emit(".bss");
+          emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ty));
+        }
       }
     }
     return;
