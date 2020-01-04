@@ -12,7 +12,11 @@ try2() {
   gcc_opt="${3:-}"
 
   echo "$input" > try/tmp.c
-  ./9cc try/tmp.c > try/tmp.s
+  if [[ "${USE_GCC}" = "1" ]]; then
+    gcc -S -o try/tmp.s try/tmp.c
+  else
+    ./9cc try/tmp.c > try/tmp.s
+  fi
   gcc $gcc_opt -o try/tmp try/tmp.s fn.c
   ./try/tmp
   actual="$?"
