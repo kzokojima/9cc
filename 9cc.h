@@ -6,36 +6,36 @@
 #include <string.h>
 
 typedef enum {
-  ND_ADD,
-  ND_SUB,
-  ND_MUL,
-  ND_DIV,
-  ND_NUM,
-  ND_EQ,
-  ND_NE,
-  ND_LT,
-  ND_LE,
-  ND_ASSIGN,  // =
-  ND_LVAR,    // ローカル変数
-  ND_RETURN,  // return
-  ND_IF,      // if
-  ND_WHILE,   // while
-  ND_FOR,     // for
-  ND_BLOCK,   // { ... }
-  ND_FN,      // foo(...)
-  ND_FN_DEF,  // foo(...) { ... }
-  ND_ADDR,    // &var
-  ND_DEREF,   // *ptr
-  ND_DEFVAR,  // int var
-  ND_GVAR,    // グローバル変数
-  ND_STRING,  // 文字列
-  ND_INITIALIZER_LIST,  // 初期化子リスト
+  kNodeAdd,
+  kNodeSub,
+  kNodeMul,
+  kNodeDiv,
+  kNodeNum,
+  kNodeEq,
+  kNodeNe,
+  kNodeLt,
+  kNodeLe,
+  kNodeAssign,  // =
+  kNodeLocalVar,    // ローカル変数
+  kNodeReturn,  // return
+  kNodeIf,      // if
+  kNodeWhile,   // while
+  kNodeFor,     // for
+  kNodeBlock,   // { ... }
+  kNodeFuncCall,      // foo(...)
+  kNodeFunc,  // foo(...) { ... }
+  kNodeAddr,    // &var
+  kNodeDeref,   // *ptr
+  kNodeVarDef,  // int var
+  kNodeGlobalVar,    // グローバル変数
+  kNodeString,  // 文字列
+  kNodeInitializerList,  // 初期化子リスト
 } NodeKind;
 
 typedef struct Type Type;
 
 struct Type {
-  enum { INT, PTR, ARRAY, CHAR } ty;
+  enum { kTypeInt, kTypePtr, kTypeArray, kTypeChar } ty;
   struct Type *ptr_to;
   size_t array_size;
 };
@@ -63,7 +63,7 @@ struct Node {
   Node *next;             // 次
   int val;
   int offset;
-  char *name; // 変数の名前
+  char *name; // 名前
   int len;    // 名前の長さ
   int lvar_size;  // ローカル変数サイズ
   Type *type;
@@ -72,17 +72,17 @@ struct Node {
 
 // トークンの種類
 typedef enum {
-  TK_RESERVED, // 記号
-  TK_IDENT,    // 識別子
-  TK_NUM,      // 整数トークン
-  TK_RETURN,   // return
-  TK_IF,       // if
-  TK_ELSE,     // else
-  TK_WHILE,    // while
-  TK_FOR,      // for
-  TK_SIZEOF,   // sizeof
-  TK_EOF,      // 入力の終わりを表すトークン
-  TK_STRING,   // 文字列
+  kTokenReserved, // 記号
+  kTokenIdent,    // 識別子
+  kTokenNum,      // 整数トークン
+  kTokenReturn,   // return
+  kTokenIf,       // if
+  kTokenElse,     // else
+  kTokenWhile,    // while
+  kTokenFor,      // for
+  kTokenSizeof,   // sizeof
+  kTokenEof,      // 入力の終わりを表すトークン
+  kTokenString,   // 文字列
 } TokenKind;
 
 typedef struct Token Token;
@@ -91,7 +91,7 @@ typedef struct Token Token;
 struct Token {
   TokenKind kind; // トークンの型
   Token *next;    // 次の入力トークン
-  int val;        // kindがTK_NUMの場合、その数値
+  int val;        // kindがkTokenNumの場合、その数値
   char *str;      // トークン文字列
   int len;        // トークンの長さ
 };
@@ -125,4 +125,4 @@ extern Node *expr();
 extern void program();
 extern void gen_string_constants();
 extern void gen(Node *node);
-int get_type_size(int type);
+extern int get_type_size(int type);

@@ -18,7 +18,7 @@ void gen_string_constants() {
 }
 
 void gen_lval(Node *node) {
-  if (node->kind != ND_LVAR)
+  if (node->kind != kNodeLocalVar)
     error("代入の左辺値が変数ではありません");
 
   emit("# var:%1$.*2$s", node->name, node->len);
@@ -28,7 +28,7 @@ void gen_lval(Node *node) {
 }
 
 void gen_gval(Node *node) {
-  if (node->kind != ND_GVAR)
+  if (node->kind != kNodeGlobalVar)
     error("代入の左辺値が変数ではありません");
 
   emit("  lea rax, %1$.*2$s[rip]", node->name, node->len);
@@ -36,9 +36,9 @@ void gen_gval(Node *node) {
 }
 
 void gen_val(Node *node) {
-  if (node->kind == ND_LVAR) {
+  if (node->kind == kNodeLocalVar) {
     gen_lval(node);
-  } else if (node->kind == ND_GVAR) {
+  } else if (node->kind == kNodeGlobalVar) {
     gen_gval(node);
   } else {
     error("代入の左辺値が変数ではありません");
@@ -56,14 +56,14 @@ void gen(Node *node) {
   int i;
 
   switch (node->kind) {
-  case ND_NUM:
+  case kNodeNum:
     emit("  push %d", node->val);
     return;
-  case ND_LVAR:
-  case ND_GVAR:
+  case kNodeLocalVar:
+  case kNodeGlobalVar:
     gen_val(node);
     emit("  pop rax");
-    if (node->type->ty == ARRAY) {
+    if (node->type->ty == kTypeArray) {
         // do nothing
     } else {
       if (get_type_size(node->type->ty) == 8)
@@ -75,17 +75,17 @@ void gen(Node *node) {
     }
     emit("  push rax");
     return;
-  case ND_ASSIGN:
-    if (node->lhs->kind == ND_DEREF) {
-      if (node->lhs->lhs->kind == ND_LVAR || node->lhs->lhs->kind == ND_GVAR) {
-        if (node->lhs->lhs->type->ty == ARRAY) {
+  case kNodeAssign:
+    if (node->lhs->kind == kNodeDeref) {
+      if (node->lhs->lhs->kind == kNodeLocalVar || node->lhs->lhs->kind == kNodeGlobalVar) {
+        if (node->lhs->lhs->type->ty == kTypeArray) {
           // *array = ...;
           gen_val(node->lhs->lhs);
         } else {
           // *pointer = ...;
           gen(node->lhs->lhs);
         }
-      } else if (node->lhs->lhs->kind == ND_ADD) {
+      } else if (node->lhs->lhs->kind == kNodeAdd) {
         // *(array + 1) = ...;
         gen_val(node->lhs->lhs->lhs);
         gen(node->lhs->lhs->rhs);
@@ -97,21 +97,21 @@ void gen(Node *node) {
       } else {
         error("代入式が不正です");
       }
-    } else if (node->lhs->kind == ND_LVAR || node->lhs->kind == ND_GVAR) {
+    } else if (node->lhs->kind == kNodeLocalVar || node->lhs->kind == kNodeGlobalVar) {
       gen_val(node->lhs);
     }
     gen(node->rhs);
     emit("  pop rdi");
     emit("  pop rax");
-    if (node->lhs->kind == ND_DEREF) {
-      if (node->lhs->lhs->kind == ND_LVAR || node->lhs->lhs->kind == ND_GVAR) {
+    if (node->lhs->kind == kNodeDeref) {
+      if (node->lhs->lhs->kind == kNodeLocalVar || node->lhs->lhs->kind == kNodeGlobalVar) {
         if (get_type_size(node->lhs->lhs->type->ty) == 8)
           emit("  mov [rax], rdi");
         else if (get_type_size(node->lhs->lhs->type->ty) == 4)
           emit("  mov [rax], edi");
         else
           emit("  mov [rax], dil");
-      } else if (node->lhs->lhs->kind == ND_ADD) {
+      } else if (node->lhs->lhs->kind == kNodeAdd) {
         if (get_type_size(node->lhs->lhs->lhs->type->ptr_to->ty) == 8)
           emit("  mov [rax], rdi");
         else
@@ -127,14 +127,14 @@ void gen(Node *node) {
     }
     emit("  push rdi");
     return;
-  case ND_RETURN:
+  case kNodeReturn:
     gen(node->lhs);
     emit("  pop rax");
     emit("  mov rsp, rbp");
     emit("  pop rbp");
     emit("  ret");
     return;
-  case ND_IF:
+  case kNodeIf:
     lavel_no = s_lavel_no;
     s_lavel_no++;
     gen(node->lhs);
@@ -150,7 +150,7 @@ void gen(Node *node) {
       emit("  push rax");
     emit("Lend%d:", lavel_no);
     return;
-  case ND_WHILE:
+  case kNodeWhile:
     lavel_no = s_lavel_no;
     s_lavel_no++;
     emit("Lbegin%d:", lavel_no);
@@ -162,7 +162,7 @@ void gen(Node *node) {
     emit("  jmp Lbegin%d", lavel_no);
     emit("Lend%d:", lavel_no);
     return;
-  case ND_FOR:
+  case kNodeFor:
     lavel_no = s_lavel_no;
     s_lavel_no++;
     gen(node->for_clause1);
@@ -176,7 +176,7 @@ void gen(Node *node) {
     emit("  jmp Lbegin%d", lavel_no);
     emit("Lend%d:", lavel_no);
     return;
-  case ND_BLOCK:
+  case kNodeBlock:
     current = node->lhs;
     while (current) {
       gen(current);
@@ -185,7 +185,7 @@ void gen(Node *node) {
     }
     emit("  push rax");
     return;
-  case ND_FN: {
+  case kNodeFuncCall: {
     current = node->lhs;
     for (i = 0; i < registers_len && current; i++) {
       gen(current);
@@ -206,7 +206,7 @@ void gen(Node *node) {
     emit("  push rax");
     return;
   }
-  case ND_FN_DEF:
+  case kNodeFunc:
     s_in_function = 1;
     emit(".text");
     emit(".global %1$.*2$s", node->name, node->len);
@@ -239,20 +239,20 @@ void gen(Node *node) {
     emit("  ret");
     s_in_function = 0;
     return;
-  case ND_ADDR:
+  case kNodeAddr:
     gen_val(node->lhs);
     return;
-  case ND_DEREF:
+  case kNodeDeref:
     gen(node->lhs);
     emit("  pop rax");
     emit("  mov rax, [rax]");
     emit("  push rax");
     return;
-  case ND_DEFVAR:
+  case kNodeVarDef:
     if (s_in_function) {
       if (node->lhs) {
         // 初期化
-        if (node->lhs->lhs->type->ty == ARRAY &&  node->lhs->rhs->kind == ND_INITIALIZER_LIST) {
+        if (node->lhs->lhs->type->ty == kTypeArray &&  node->lhs->rhs->kind == kNodeInitializerList) {
           Node *cur = node->lhs->rhs->next;
           int offset = node->lhs->lhs->offset;
           int size = get_type_size(node->lhs->lhs->type->ptr_to->ty);
@@ -282,7 +282,7 @@ void gen(Node *node) {
       }
     } else {
       // グローバル変数
-      if (node->type->ty == ARRAY) {
+      if (node->type->ty == kTypeArray) {
         if (node->lhs) {
           // 初期化子リスト
           emit(".text");
@@ -307,13 +307,13 @@ void gen(Node *node) {
           emit(".bss");
           emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ptr_to->ty) * node->type->array_size);
         }
-      } else if (node->type->ty == PTR) {
+      } else if (node->type->ty == kTypePtr) {
         if (node->lhs) {
           // 初期化
           emit(".text");
-          if (node->lhs->rhs->kind == ND_STRING) {
+          if (node->lhs->rhs->kind == kNodeString) {
             emit("%1$.*2$s:\n  .quad .LC%3$d", node->name, node->len, node->lhs->rhs->string_constant->index);
-          } else if (node->lhs->rhs->kind == ND_ADDR) {
+          } else if (node->lhs->rhs->kind == kNodeAddr) {
             emit("%1$.*2$s:\n  .quad %3$.*4$s", node->name, node->len, node->lhs->rhs->lhs->name, node->lhs->rhs->lhs->len);
           }
         } else {
@@ -343,7 +343,7 @@ void gen(Node *node) {
       }
     }
     return;
-  case ND_STRING:
+  case kNodeString:
     emit("  lea rax, .LC%d[rip]", node->string_constant->index);
     emit("  push rax");
     return;
@@ -356,40 +356,40 @@ void gen(Node *node) {
   emit("  pop rax");
 
   switch (node->kind) {
-  case ND_ADD:
-    if ((node->lhs->kind == ND_LVAR || node->lhs->kind == ND_GVAR) && (node->lhs->type->ty == ARRAY || node->lhs->type->ty == PTR)) {
+  case kNodeAdd:
+    if ((node->lhs->kind == kNodeLocalVar || node->lhs->kind == kNodeGlobalVar) && (node->lhs->type->ty == kTypeArray || node->lhs->type->ty == kTypePtr)) {
       emit("  imul rdi, %d", get_type_size(node->lhs->type->ptr_to->ty));
-    } else if ((node->rhs->kind == ND_LVAR || node->rhs->kind == ND_GVAR) && (node->rhs->type->ty == ARRAY || node->rhs->type->ty == PTR)) {
+    } else if ((node->rhs->kind == kNodeLocalVar || node->rhs->kind == kNodeGlobalVar) && (node->rhs->type->ty == kTypeArray || node->rhs->type->ty == kTypePtr)) {
       emit("  imul rax, %d", get_type_size(node->rhs->type->ptr_to->ty));
     }
     emit("  add rax, rdi");
     break;
-  case ND_SUB:
+  case kNodeSub:
     emit("  sub rax, rdi");
     break;
-  case ND_MUL:
+  case kNodeMul:
     emit("  imul rax, rdi");
     break;
-  case ND_DIV:
+  case kNodeDiv:
     emit("  cqo");
     emit("  idiv rdi");
     break;
-  case ND_EQ:
+  case kNodeEq:
     emit("  cmp rax, rdi");
     emit("  sete al");
     emit("  movzb rax, al");
     break;
-  case ND_NE:
+  case kNodeNe:
     emit("  cmp rax, rdi");
     emit("  setne al");
     emit("  movzb rax, al");
     break;
-  case ND_LT:
+  case kNodeLt:
     emit("  cmp rax, rdi");
     emit("  setl al");
     emit("  movzb rax, al");
     break;
-  case ND_LE:
+  case kNodeLe:
     emit("  cmp rax, rdi");
     emit("  setle al");
     emit("  movzb rax, al");
