@@ -497,7 +497,7 @@ Node *expr() {
 Type *parse_type() {
   Type *type = calloc(1, sizeof(Type));
   if (comsume_ident("int")) {
-  type->ty = INT;
+    type->ty = INT;
   } else if (comsume_ident("char")) {
     type->ty = CHAR;
   } else {
@@ -656,43 +656,43 @@ Node *global_definition() {
   if (tok) {
     if (consume("(")) {
       // 関数定義
-    locals = NULL;
-    node = calloc(1, sizeof(Node));
-    node->kind = ND_FN_DEF;
-    node->name = tok->str;
-    node->len = tok->len;
-    if (!consume(")")) {
-      // パラメーター
-      Node *params = NULL;
-      Node *current;
-      for (;;) {
+      locals = NULL;
+      node = calloc(1, sizeof(Node));
+      node->kind = ND_FN_DEF;
+      node->name = tok->str;
+      node->len = tok->len;
+      if (!consume(")")) {
+        // パラメーター
+        Node *params = NULL;
+        Node *current;
+        for (;;) {
           if (!(type = parse_type())) {
-          error_at(token->str, "定義ではありません");
+            error_at(token->str, "定義ではありません");
+          }
+          if (params == NULL) {
+              params = defvar(type, &locals);
+            current = params;
+          } else {
+              current->next = defvar(type, &locals);
+            current = current->next;
+          }
+          if (current->type->ty == ARRAY) {
+            locals->type->ty = PTR;
+            locals->offset = locals->offset + get_type_size(PTR);
+            current->offset = locals->offset;
+          }
+          if (!consume(",")) {
+            expect(')');
+            break;
+          }
         }
-        if (params == NULL) {
-            params = defvar(type, &locals);
-          current = params;
-        } else {
-            current->next = defvar(type, &locals);
-          current = current->next;
-        }
-        if (current->type->ty == ARRAY) {
-          locals->type->ty = PTR;
-          locals->offset = locals->offset + get_type_size(PTR);
-          current->offset = locals->offset;
-        }
-        if (!consume(",")) {
-          expect(')');
-          break;
-        }
+        node->lhs = params;
       }
-      node->lhs = params;
-    }
-    node->rhs = stmt();
-    if (locals) {
-      node->lvar_size = locals->offset;
-    }
-    return node;
+      node->rhs = stmt();
+      if (locals) {
+        node->lvar_size = locals->offset;
+      }
+      return node;
     } else {
       // グローバル変数定義
       token = tok;
