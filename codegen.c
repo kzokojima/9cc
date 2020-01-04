@@ -323,8 +323,19 @@ void gen(Node *node) {
       } else  {
         if (node->lhs) {
           // 初期化
+          int size = get_type_size(node->lhs->lhs->type->ty);
           emit(".text");
-          emit("%1$.*2$s:\n  .long %3$d", node->name, node->len, node->lhs->rhs->val);
+          switch (size) {
+          case 1:
+            emit("%1$.*2$s:\n  .byte %3$d", node->name, node->len, node->lhs->rhs->val);
+            break;
+          case 4:
+            emit("%1$.*2$s:\n  .long %3$d", node->name, node->len, node->lhs->rhs->val);
+            break;
+          case 8:
+            emit("%1$.*2$s:\n  .quad %3$d", node->name, node->len, node->lhs->rhs->val);
+            break;
+          }
         } else {
           emit(".bss");
           emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ty));

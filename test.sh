@@ -191,5 +191,10 @@ try2 104 'char a[] = "hello, world"; int main() { return *a; }'
 try2 104 'char *p = "hello, world"; int main() { return *p; }'
 try2 42 'int i = 42; int *p = &i; int main() { return *p; }'
 
+# 文字リテラル
+try2 104 "int main() { char c = 'h'; return c; }"
+try2 104 "char c = 'h'; int main() { return c; }"
+try2 4 "int main() { return sizeof('h'); }"
+
 
 echo OK

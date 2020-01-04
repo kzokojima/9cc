@@ -234,6 +234,19 @@ Token *tokenize() {
       continue;
     }
 
+    if (*p == '\'') {
+      // 文字
+      p++;
+      char c = *p;
+      p++;
+      if (*p != '\'')
+        error_at(p, "トークナイズできません");
+      cur = new_token(TK_NUM, cur, p, 0);
+      cur->val = c;
+      p++;
+      continue;
+    }
+
     error_at(p, "トークナイズできません");
   }
 
