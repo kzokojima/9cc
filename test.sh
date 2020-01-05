@@ -196,5 +196,28 @@ try2 104 "int main() { char c = 'h'; return c; }"
 try2 104 "char c = 'h'; int main() { return c; }"
 try2 4 "int main() { return sizeof('h'); }"
 
+# 構造体
+try2 42 '
+struct foo {
+  int i;
+};
+int main() {
+  struct foo val;
+  val.i = 42;
+  return val.i;
+}'
+try2 42 '
+struct foo {
+  int i;
+  int j;
+};
+int main() {
+  struct foo val;
+  val.i = 40;
+  val.j = 2;
+  print_int(val.i);
+  print_int(val.j);
+  return val.i + val.j;
+}'
 
 echo OK

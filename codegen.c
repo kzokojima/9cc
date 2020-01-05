@@ -99,6 +99,11 @@ void gen(Node *node) {
       }
     } else if (node->lhs->kind == kNodeLocalVar || node->lhs->kind == kNodeGlobalVar) {
       gen_val(node->lhs);
+    } else if (node->lhs->kind == kNodeStructMember) {
+      gen_val(node->lhs->lhs);
+      emit("  pop rax");
+      emit("  add rax, %d", node->lhs->offset);
+      emit("  push rax");
     }
     gen(node->rhs);
     emit("  pop rdi");
@@ -345,6 +350,24 @@ void gen(Node *node) {
     return;
   case kNodeString:
     emit("  lea rax, .LC%d[rip]", node->string_constant->index);
+    emit("  push rax");
+    return;
+  case kNodeStruct:
+    return;
+  case kNodeStructMember:
+    gen_val(node->lhs);
+    emit("  pop rax");
+    emit("  add rax, %d", node->offset);
+    if (node->type->ty == kTypeArray) {
+        // do nothing
+    } else {
+      if (get_type_size(node->type->ty) == 8)
+        emit("  mov rax, [rax]");
+      else if (get_type_size(node->type->ty) == 4)
+        emit("  mov eax, [rax]");
+      else
+        emit("  movsx eax, BYTE PTR [rax]");
+    }
     emit("  push rax");
     return;
   }

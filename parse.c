@@ -1,4 +1,5 @@
 #include "9cc.h"
+#include "struct.h"
 
 
 // 入力プログラム
@@ -28,6 +29,19 @@ int get_type_size(int type) {
     return 8;
   case kTypeChar:
     return 1;
+  default:
+    return -1;
+  }
+}
+
+int get_type_size_by_type(Type *type) {
+  switch (type->ty) {
+  case kTypeInt:
+  case kTypePtr:
+  case kTypeChar:
+    return get_type_size(type->ty);
+  case kTypeStruct:
+    return get_struct_size(type);
   default:
     return -1;
   }
@@ -179,7 +193,7 @@ Token *tokenize() {
     }
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='
-        || *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' || *p == ']') {
+        || *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' || *p == ']' || *p == '.') {
       cur = new_token(kTokenReserved, cur, p++, 1);
       continue;
     }
@@ -219,6 +233,11 @@ Token *tokenize() {
     }
     if (keyword_len = expect_keyword(p, "sizeof")) {
       cur = new_token(kTokenSizeof, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "struct")) {
+      cur = new_token(kTokenStruct, cur, p, 0);
       p += keyword_len;
       continue;
     }
@@ -274,6 +293,15 @@ Node *new_node_num(int val) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kNodeNum;
   node->val = val;
+  return node;
+}
+
+// 識別子ノード
+Node *new_node_ident(TokenKind kind, Token *token) {
+  Node *node = calloc(1, sizeof(Node));
+  node->kind = kind;
+  node->name = token->str;
+  node->len = token->len;
   return node;
 }
 
@@ -389,6 +417,30 @@ Node *primary() {
       node = new_node(kNodeDeref, new_node(kNodeAdd, node, new_node_num(expect_number())), NULL);
       expect(']');
     }
+    if (consume(".")) {
+      // 構造体メンバ
+      if (node->type == NULL || node->type->ty != kTypeStruct) {
+        error_at(tok->str, "型が不明です");
+      }
+      StructDef *struct_def = find_struct_def(node->type->name, node->type->name_len);
+      if (struct_def == NULL) {
+        error_at(tok->str, "構造体ではありません");
+      }
+      Token *member_token = consume_token(kTokenIdent);
+      if (member_token == NULL) {
+        error_at(tok->str, "識別子ではありません");
+      }
+      StructMember *member = find_struct_member(struct_def, member_token->str, member_token->len);
+      if (member_token == NULL) {
+        error_at(tok->str, "存在しないメンバーです");
+      }
+      node = new_node(kNodeStructMember, node, NULL);
+      node->name = member->name;
+      node->len = member->name_len;
+      node->type = member->type;
+      node->offset = member->offset;
+    }
+
     return node;
   }
 
@@ -508,6 +560,15 @@ Type *parse_type() {
     type->ty = kTypeInt;
   } else if (consume_ident("char")) {
     type->ty = kTypeChar;
+  } else if (consume_token(kTokenStruct)) {
+    Token *tok = consume_token(kTokenIdent);
+    StructDef *struct_def = find_struct_def(tok->str, tok->len);
+    if (struct_def == NULL) {
+      error_at(tok->str, "構造体が定義されていません");
+    }
+    type->ty = kTypeStruct;
+    type->name = tok->str;
+    type->name_len = tok->len;
   } else {
     return NULL;
   }
@@ -536,7 +597,7 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
   lvar->name = tok->str;
   lvar->len = tok->len;
   if (ptr_var_list == &locals)
-    lvar->offset = (var_list ? var_list->offset : 0) + get_type_size(type->ty);
+    lvar->offset = (var_list ? var_list->offset : 0) + get_type_size_by_type(type);
   lvar->type = type;
   if (consume("[")) {
     // 配列定義
@@ -549,7 +610,7 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
       type->array_size = 0;
     type->ptr_to = lvar->type;
     if (ptr_var_list == &locals)
-      lvar->offset = (var_list ? var_list->offset : 0) + type->array_size * get_type_size(lvar->type->ty);
+      lvar->offset = (var_list ? var_list->offset : 0) + type->array_size * get_type_size_by_type(lvar->type);
     lvar->type = type;
     expect(']');
   }
@@ -651,13 +712,41 @@ Node *stmt() {
   return node;
 }
 
+// 構造体定義
+Node *struct_definition() {
+  if (! consume_token(kTokenStruct)) {
+    return NULL;
+  }
+  Node *node = new_node_ident(kNodeStruct, expect_ident());
+  StructDef *struct_def = new_struct_def(node);
+  expect('{');
+  Type *type;
+  StructMember *member;
+  Node *cur = node;
+  while (type = parse_type()) {
+    cur->next = new_node_ident(kNodeVarDef, expect_ident());
+    cur->next->type = type;
+    new_struct_member(struct_def, cur->next);
+    cur = cur->next;
+    expect(';');
+  }
+  expect('}');
+  expect(';');
+
+  return node;
+}
+
 // グローバル定義
 //
 // - 関数
 // - グローバル変数
+// - 構造体
 Node *global_definition() {
   Node *node;
   Type *type;
+  if (node = struct_definition()) {
+    return node;
+  }
   if (!(type = parse_type())) {
     error_at(token->str, "定義ではありません");
   }

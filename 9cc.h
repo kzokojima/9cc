@@ -1,3 +1,6 @@
+#ifndef NINECC_9CC_H_
+#define NINECC_9CC_H_
+
 #include <ctype.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -30,14 +33,25 @@ typedef enum {
   kNodeGlobalVar,    // グローバル変数
   kNodeString,  // 文字列
   kNodeInitializerList,  // 初期化子リスト
+  kNodeStruct,   // 構造体
+  // 構造体メンバ
+  //    foo.i = ...
+  //
+  // kNodeStructMember
+  //    lhs: Node(kNodeLocalVar, ...)
+  //    name: メンバー名
+  //    offset: オフセット
+  kNodeStructMember,
 } NodeKind;
 
 typedef struct Type Type;
 
 struct Type {
-  enum { kTypeInt, kTypePtr, kTypeArray, kTypeChar } ty;
+  enum { kTypeInt, kTypePtr, kTypeArray, kTypeChar, kTypeStruct } ty;
   struct Type *ptr_to;
   size_t array_size;
+  char *name;
+  int name_len;
 };
 
 // 文字列定数
@@ -83,6 +97,7 @@ typedef enum {
   kTokenSizeof,   // sizeof
   kTokenEof,      // 入力の終わりを表すトークン
   kTokenString,   // 文字列
+  kTokenStruct,   // 構造体
 } TokenKind;
 
 typedef struct Token Token;
@@ -126,3 +141,6 @@ extern void program();
 extern void gen_string_constants();
 extern void gen(Node *node);
 extern int get_type_size(int type);
+extern int get_type_size_by_type(Type *type);
+
+#endif  // NINECC_9CC_H_
