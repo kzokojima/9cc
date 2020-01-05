@@ -79,7 +79,7 @@ Token *consume_token(TokenKind kind) {
   return current;
 }
 
-Token *comsume_ident(char *str) {
+Token *consume_ident(char *str) {
   if (token->kind != kTokenIdent)
     return false;
   if (memcmp(token->str, str, strlen(str)))
@@ -504,9 +504,9 @@ Node *expr() {
 // データ型
 Type *parse_type() {
   Type *type = calloc(1, sizeof(Type));
-  if (comsume_ident("int")) {
+  if (consume_ident("int")) {
     type->ty = kTypeInt;
-  } else if (comsume_ident("char")) {
+  } else if (consume_ident("char")) {
     type->ty = kTypeChar;
   } else {
     return NULL;
