@@ -18,8 +18,9 @@ void gen_string_constants() {
 }
 
 void gen_lval(Node *node) {
-  if (node->kind != kNodeLocalVar)
-    error("代入の左辺値が変数ではありません");
+  if (node->kind != kNodeLocalVar) {
+    error("変数ではありません");
+  }
 
   emit("# var:%1$.*2$s", node->name, node->len);
   emit("  mov rax, rbp");
@@ -28,8 +29,9 @@ void gen_lval(Node *node) {
 }
 
 void gen_gval(Node *node) {
-  if (node->kind != kNodeGlobalVar)
-    error("代入の左辺値が変数ではありません");
+  if (node->kind != kNodeGlobalVar) {
+    error("変数ではありません");
+  }
 
   emit("  lea rax, %1$.*2$s[rip]", node->name, node->len);
   emit("  push rax");
@@ -41,7 +43,7 @@ void gen_val(Node *node) {
   } else if (node->kind == kNodeGlobalVar) {
     gen_gval(node);
   } else {
-    error("代入の左辺値が変数ではありません");
+    error("#変数ではありません");
   }
 }
 
@@ -245,7 +247,14 @@ void gen(Node *node) {
     s_in_function = 0;
     return;
   case kNodeAddr:
-    gen_val(node->lhs);
+    if (node->lhs->kind == kNodeStructMember) {
+      gen_val(node->lhs->lhs);
+      emit("  pop rax");
+      emit("  add rax, %d", node->lhs->offset);
+      emit("  push rax");
+    } else {
+      gen_val(node->lhs);
+    }
     return;
   case kNodeDeref:
     gen(node->lhs);

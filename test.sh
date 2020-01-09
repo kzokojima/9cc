@@ -219,5 +219,16 @@ int main() {
   print_int(val.j);
   return val.i + val.j;
 }'
+try2 42 '
+struct foo {
+  int i;
+  int *p;
+};
+int main() {
+  struct foo val;
+  val.i = 42;
+  val.p = &val.i;
+  return *val.p;
+}'
 
 echo OK
