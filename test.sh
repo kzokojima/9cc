@@ -230,5 +230,17 @@ int main() {
   val.p = &val.i;
   return *val.p;
 }'
+try2 42 '
+struct foo {
+  int i;
+  int j;
+};
+int main() {
+  struct foo val;
+  struct foo *p = &val;
+  val.i = 40;
+  p->j = 2;
+  return p->i + p->j;
+}'
 
 echo OK

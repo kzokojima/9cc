@@ -42,6 +42,14 @@ typedef enum {
   //    name: メンバー名
   //    offset: オフセット
   kNodeStructMember,
+  // 構造体ポインタメンバ
+  //    foo->i = ...
+  //
+  // kNodeStructPointerMember
+  //    lhs: Node(kNodeLocalVar, ...)
+  //    name: メンバー名
+  //    offset: オフセット
+  kNodeStructPointerMember,
 } NodeKind;
 
 typedef struct Type Type;

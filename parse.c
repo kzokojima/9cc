@@ -192,6 +192,12 @@ Token *tokenize() {
       continue;
     }
 
+    if (! memcmp(p, "->", 2)) {
+      cur = new_token(kTokenReserved, cur, p, 2);
+      p += 2;
+      continue;
+    }
+
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='
         || *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' || *p == ']' || *p == '.') {
       cur = new_token(kTokenReserved, cur, p++, 1);
@@ -417,12 +423,20 @@ Node *primary() {
       node = new_node(kNodeDeref, new_node(kNodeAdd, node, new_node_num(expect_number())), NULL);
       expect(']');
     }
+
+    // 構造体メンバ
+    int node_kind = -1;
     if (consume(".")) {
-      // 構造体メンバ
-      if (node->type == NULL || node->type->ty != kTypeStruct) {
+      node_kind = kNodeStructMember;
+    } else if (consume("->")) {
+      node_kind = kNodeStructPointerMember;
+    }
+    if (node_kind != -1) {
+      Type *type = node_kind == kNodeStructMember ? node->type : node->type->ptr_to;
+      if (type == NULL || type->ty != kTypeStruct) {
         error_at(tok->str, "型が不明です");
       }
-      StructDef *struct_def = find_struct_def(node->type->name, node->type->name_len);
+      StructDef *struct_def = find_struct_def(type->name, type->name_len);
       if (struct_def == NULL) {
         error_at(tok->str, "構造体ではありません");
       }
@@ -434,7 +448,7 @@ Node *primary() {
       if (member_token == NULL) {
         error_at(tok->str, "存在しないメンバーです");
       }
-      node = new_node(kNodeStructMember, node, NULL);
+      node = new_node(node_kind, node, NULL);
       node->name = member->name;
       node->len = member->name_len;
       node->type = member->type;
