@@ -38,12 +38,25 @@ void gen_gval(Node *node) {
 }
 
 void gen_val(Node *node) {
-  if (node->kind == kNodeLocalVar) {
+  switch (node->kind) {
+  case kNodeLocalVar:
     gen_lval(node);
-  } else if (node->kind == kNodeGlobalVar) {
+    break;
+  case kNodeGlobalVar:
     gen_gval(node);
-  } else {
-    error("#変数ではありません");
+    break;
+  case kNodeStructMember:
+  case kNodeStructPointerMember:
+    gen_lval(node->lhs);
+    emit("  pop rax");
+    if (node->kind == kNodeStructPointerMember) {
+      emit("  mov rax, [rax]");
+    }
+    emit("  add rax, %d", node->offset);
+    emit("  push rax");
+    break;
+  default:
+    error("変数ではありません");
   }
 }
 
@@ -56,6 +69,7 @@ void gen(Node *node) {
   char *registers_32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
   int registers_len = sizeof registers / sizeof registers[0];
   int i;
+  Type *type;
 
   switch (node->kind) {
   case kNodeNum:
@@ -63,6 +77,8 @@ void gen(Node *node) {
     return;
   case kNodeLocalVar:
   case kNodeGlobalVar:
+  case kNodeStructMember:
+  case kNodeStructPointerMember:
     gen_val(node);
     emit("  pop rax");
     if (node->type->ty == kTypeArray) {
@@ -87,6 +103,7 @@ void gen(Node *node) {
           // *pointer = ...;
           gen(node->lhs->lhs);
         }
+        type = node->lhs->lhs->type;
       } else if (node->lhs->lhs->kind == kNodeAdd) {
         // *(array + 1) = ...;
         gen_val(node->lhs->lhs->lhs);
@@ -96,45 +113,23 @@ void gen(Node *node) {
         emit("  imul rdi, %d", get_type_size(node->lhs->lhs->lhs->type->ptr_to->ty));
         emit("  add rax, rdi");
         emit("  push rax");
+        type = node->lhs->lhs->lhs->type->ptr_to;
       } else {
         error("代入式が不正です");
       }
-    } else if (node->lhs->kind == kNodeLocalVar || node->lhs->kind == kNodeGlobalVar) {
+    } else {
       gen_val(node->lhs);
-    } else if (node->lhs->kind == kNodeStructMember || node->lhs->kind == kNodeStructPointerMember) {
-      gen_val(node->lhs->lhs);
-      emit("  pop rax");
-      if (node->lhs->kind == kNodeStructPointerMember) {
-        emit("  mov rax, [rax]");
-      }
-      emit("  add rax, %d", node->lhs->offset);
-      emit("  push rax");
+      type = node->lhs->type;
     }
     gen(node->rhs);
     emit("  pop rdi");
     emit("  pop rax");
-    if (node->lhs->kind == kNodeDeref) {
-      if (node->lhs->lhs->kind == kNodeLocalVar || node->lhs->lhs->kind == kNodeGlobalVar) {
-        if (get_type_size(node->lhs->lhs->type->ty) == 8)
-          emit("  mov [rax], rdi");
-        else if (get_type_size(node->lhs->lhs->type->ty) == 4)
-          emit("  mov [rax], edi");
-        else
-          emit("  mov [rax], dil");
-      } else if (node->lhs->lhs->kind == kNodeAdd) {
-        if (get_type_size(node->lhs->lhs->lhs->type->ptr_to->ty) == 8)
-          emit("  mov [rax], rdi");
-        else
-          emit("  mov [rax], edi");
-      }
-    } else {
-      if (get_type_size(node->lhs->type->ty) == 8)
-        emit("  mov [rax], rdi");
-      else if (get_type_size(node->lhs->type->ty) == 4)
-        emit("  mov [rax], edi");
-      else
-        emit("  mov [rax], dil");
-    }
+    if (get_type_size(type->ty) == 8)
+      emit("  mov [rax], rdi");
+    else if (get_type_size(type->ty) == 4)
+      emit("  mov [rax], edi");
+    else
+      emit("  mov [rax], dil");
     emit("  push rdi");
     return;
   case kNodeReturn:
@@ -250,14 +245,7 @@ void gen(Node *node) {
     s_in_function = 0;
     return;
   case kNodeAddr:
-    if (node->lhs->kind == kNodeStructMember) {
-      gen_val(node->lhs->lhs);
-      emit("  pop rax");
-      emit("  add rax, %d", node->lhs->offset);
-      emit("  push rax");
-    } else {
-      gen_val(node->lhs);
-    }
+    gen_val(node->lhs);
     return;
   case kNodeDeref:
     gen(node->lhs);
@@ -365,26 +353,6 @@ void gen(Node *node) {
     emit("  push rax");
     return;
   case kNodeStruct:
-    return;
-  case kNodeStructMember:
-  case kNodeStructPointerMember:
-    gen_val(node->lhs);
-    emit("  pop rax");
-    if (node->kind == kNodeStructPointerMember) {
-      emit("  mov rax, [rax]");
-    }
-    emit("  add rax, %d", node->offset);
-    if (node->type->ty == kTypeArray) {
-        // do nothing
-    } else {
-      if (get_type_size(node->type->ty) == 8)
-        emit("  mov rax, [rax]");
-      else if (get_type_size(node->type->ty) == 4)
-        emit("  mov eax, [rax]");
-      else
-        emit("  movsx eax, BYTE PTR [rax]");
-    }
-    emit("  push rax");
     return;
   }
 
