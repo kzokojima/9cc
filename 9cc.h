@@ -106,6 +106,8 @@ typedef enum {
   kTokenEof,      // 入力の終わりを表すトークン
   kTokenString,   // 文字列
   kTokenStruct,   // 構造体
+  kTokenEnum,     // 列挙
+  kTokenTypedef,  // typedef
 } TokenKind;
 
 typedef struct Token Token;

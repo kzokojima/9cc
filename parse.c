@@ -1,5 +1,7 @@
 #include "9cc.h"
+#include "enum.h"
 #include "struct.h"
+#include "typedef.h"
 
 
 // 入力プログラム
@@ -247,6 +249,16 @@ Token *tokenize() {
       p += keyword_len;
       continue;
     }
+    if (keyword_len = expect_keyword(p, "enum")) {
+      cur = new_token(kTokenEnum, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "typedef")) {
+      cur = new_token(kTokenTypedef, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
 
     if (('A' <= *p && *p <= 'Z') || *p == '_' || ('a' <= *p && *p <= 'z')) {
       size_t len = strspn(p + 1, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz");
@@ -402,6 +414,7 @@ Node *primary() {
 
     Node *node = calloc(1, sizeof(Node));
     LVar *lvar = find_var(tok, locals);
+    EnumDef *enum_def = find_enum_def(tok->str, tok->len);
     if (lvar) {
       // ローカル変数
       node->kind = kNodeLocalVar;
@@ -415,6 +428,9 @@ Node *primary() {
       node->name = lvar->name;
       node->len = lvar->len;
       node->type = lvar->type;
+    } else if (enum_def) {
+      // 列挙
+      return new_node_num(enum_def->val);
     } else {
       error_at(tok->str, "未定義の変数です");
     }
@@ -584,7 +600,17 @@ Type *parse_type() {
     type->name = tok->str;
     type->name_len = tok->len;
   } else {
+    Token *tok = consume_token(kTokenIdent);
+    if (tok) {
+      TypedefDef *typedef_def = find_typedef_def(tok->str, tok->len);
+      if (typedef_def == NULL) {
+        token = tok;
+        return NULL;
+      }
+      type->ty = kTypeInt;
+  } else {
     return NULL;
+  }
   }
   while (consume("*")) {
     Type *t = calloc(1, sizeof(Type));
@@ -747,9 +773,52 @@ Node *struct_definition() {
     expect(';');
   }
   expect('}');
-  expect(';');
 
   return node;
+}
+
+// 列挙定義
+bool enum_definition() {
+  if (! consume_token(kTokenEnum)) {
+    return false;
+  }
+  Token *tok = consume_token(kTokenIdent);
+  if (tok != NULL) {
+
+  }
+  if (!consume("{")) {
+    return false;
+  }
+  int val = 0;
+  for (;;) {
+    if (consume("}")) {
+      return true;
+    }
+    tok = consume_token(kTokenIdent);
+    if (find_enum_def(tok->str, tok->len)) {
+      error_at(tok->str, "その列挙は定義済みです");
+    }
+    new_enum_def(tok->str, tok->len, val);
+    val++;
+    if (!consume(",")) {
+      break;
+    }
+  }
+  expect('}');
+  return true;
+}
+
+// typedef定義
+bool typedef_definition() {
+  if (! consume_token(kTokenTypedef)) {
+    return false;
+  }
+  if (!enum_definition()) {
+    error("typedef定義エラーです");
+  }
+  Token *tok = expect_ident();
+  new_typedef_def(tok->str, tok->len);
+  return true;
 }
 
 // グローバル定義
@@ -757,12 +826,22 @@ Node *struct_definition() {
 // - 関数
 // - グローバル変数
 // - 構造体
+// - 列挙
 Node *global_definition() {
   Node *node;
   Type *type;
   Token *cur = token;
   if (node = struct_definition()) {
+    expect(';');
     return node;
+  }
+  if (enum_definition()) {
+    expect(';');
+    return NULL;
+  }
+  if (typedef_definition()) {
+    expect(';');
+    return NULL;
   }
   token = cur;
   if (!(type = parse_type())) {
@@ -819,7 +898,12 @@ Node *global_definition() {
 
 void program() {
   int i = 0;
-  while (!at_eof())
-    code[i++] = global_definition();
+  Node *node;
+  while (!at_eof()) {
+    node = global_definition();
+    if (node) {
+      code[i++] = node;
+    }
+  }
   code[i] = NULL;
 }

@@ -10,12 +10,24 @@ try2() {
   expected="$1"
   input="$2"
   gcc_opt="${3:-}"
+  expect_error="${4:-}"
 
   echo "$input" > try/tmp.c
   if [[ "${USE_GCC}" = "1" ]]; then
     gcc -S -o try/tmp.s try/tmp.c
+    ec=$?
   else
     ./9cc try/tmp.c > try/tmp.s
+    ec=$?
+  fi
+  if [[ $expect_error = "1" ]]; then
+    if [[ $ec = 0 ]]; then
+      echo "error expected, but success"
+      exit 1
+    else
+      echo "error expected"
+      return 0
+    fi
   fi
   gcc $gcc_opt -o try/tmp try/tmp.s fn.c
   ./try/tmp
@@ -31,6 +43,10 @@ try2() {
 
 try2s() {
   try2 "$1" "$2" "-static"
+}
+
+try2error() {
+  try2 "" "$1" "" 1
 }
 
 mkdir -p try
@@ -311,6 +327,29 @@ int main() {
   val.i = 40;
   *p = 2;
   return val.i + *p;
+}'
+
+# 列挙
+try2error '
+enum { A, A };
+int main() {
+  return A;
+}'
+try2 1 '
+enum { kTypeInt, kTypePtr, kTypeArray, kTypeChar, kTypeStruct };
+int main() {
+  return kTypePtr;
+}'
+try2 1 '
+typedef enum {
+  kNodeAdd,
+  kNodeSub,
+  kNodeMul,
+  kNodeDiv,
+} NodeKind;
+int main() {
+  NodeKind kind = kNodeSub;
+  return kind;
 }'
 
 echo OK
