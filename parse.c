@@ -445,8 +445,8 @@ Node *primary() {
         error_at(tok->str, "識別子ではありません");
       }
       StructMember *member = find_struct_member(struct_def, member_token->str, member_token->len);
-      if (member_token == NULL) {
-        error_at(tok->str, "存在しないメンバーです");
+      if (member == NULL) {
+        error_at(member_token->str, "存在しないメンバーです");
       }
       node = new_node(node_kind, node, NULL);
       node->name = member->name;
@@ -644,7 +644,7 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
     } else {
       node->lhs = new_node(kNodeAssign, node_lvar, expr());
     }
-    node_lvar->kind = kNodeLocalVar;
+    node_lvar->kind = (ptr_var_list == &locals) ? kNodeLocalVar : kNodeGlobalVar;
     node_lvar->offset = lvar->offset;
     node_lvar->name = lvar->name;
     node_lvar->len = lvar->len;
@@ -732,8 +732,10 @@ Node *struct_definition() {
     return NULL;
   }
   Node *node = new_node_ident(kNodeStruct, expect_ident());
+  if (!consume("{")) {
+    return NULL;
+  }
   StructDef *struct_def = new_struct_def(node);
-  expect('{');
   Type *type;
   StructMember *member;
   Node *cur = node;
@@ -758,9 +760,11 @@ Node *struct_definition() {
 Node *global_definition() {
   Node *node;
   Type *type;
+  Token *cur = token;
   if (node = struct_definition()) {
     return node;
   }
+  token = cur;
   if (!(type = parse_type())) {
     error_at(token->str, "定義ではありません");
   }

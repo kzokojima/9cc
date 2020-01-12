@@ -47,7 +47,7 @@ void gen_val(Node *node) {
     break;
   case kNodeStructMember:
   case kNodeStructPointerMember:
-    gen_lval(node->lhs);
+    gen_val(node->lhs);
     emit("  pop rax");
     if (node->kind == kNodeStructPointerMember) {
       emit("  mov rax, [rax]");
@@ -319,7 +319,12 @@ void gen(Node *node) {
           if (node->lhs->rhs->kind == kNodeString) {
             emit("%1$.*2$s:\n  .quad .LC%3$d", node->name, node->len, node->lhs->rhs->string_constant->index);
           } else if (node->lhs->rhs->kind == kNodeAddr) {
-            emit("%1$.*2$s:\n  .quad %3$.*4$s", node->name, node->len, node->lhs->rhs->lhs->name, node->lhs->rhs->lhs->len);
+            if (node->lhs->rhs->lhs->kind == kNodeStructMember) {
+              emit("%1$.*2$s:\n  .quad %3$.*4$s+%5$d", node->name, node->len, node->lhs->rhs->lhs->lhs->name, node->lhs->rhs->lhs->lhs->len,
+                node->lhs->rhs->lhs->offset);
+            } else {
+              emit("%1$.*2$s:\n  .quad %3$.*4$s", node->name, node->len, node->lhs->rhs->lhs->name, node->lhs->rhs->lhs->len);
+            }
           }
         } else {
           emit(".bss");
@@ -343,7 +348,7 @@ void gen(Node *node) {
           }
         } else {
           emit(".bss");
-          emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size(node->type->ty));
+          emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, get_type_size_by_type(node->type));
         }
       }
     }

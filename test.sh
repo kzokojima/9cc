@@ -242,5 +242,75 @@ int main() {
   p->j = 2;
   return p->i + p->j;
 }'
+try2 42 '
+struct foo {
+  int i;
+  int j;
+};
+int main() {
+  struct foo val;
+  int *p = &val.j;
+  val.i = 40;
+  *p = 2;
+  return val.i + *p;
+}'
+# 構造体(グローバル変数)
+try2 42 '
+struct foo {
+  int i;
+};
+struct foo val;
+int main() {
+  val.i = 42;
+  return val.i;
+}'
+try2 42 '
+struct foo {
+  int i;
+  int j;
+};
+struct foo val;
+int main() {
+  val.i = 40;
+  val.j = 2;
+  print_int(val.i);
+  print_int(val.j);
+  return val.i + val.j;
+}'
+try2 42 '
+struct foo {
+  int i;
+  int *p;
+};
+struct foo val;
+int main() {
+  val.i = 42;
+  val.p = &val.i;
+  return *val.p;
+}'
+try2 42 '
+struct foo {
+  int i;
+  int j;
+};
+struct foo val;
+struct foo *p = &val;
+int main() {
+  val.i = 40;
+  p->j = 2;
+  return p->i + p->j;
+}'
+try2 42 '
+struct foo {
+  int i;
+  int j;
+};
+struct foo val;
+int *p = &val.j;
+int main() {
+  val.i = 40;
+  *p = 2;
+  return val.i + *p;
+}'
 
 echo OK
