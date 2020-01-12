@@ -169,11 +169,11 @@ try2s 12 'int main() { return printf("hello, world"); }'
 try2s 12 'int main() { char *p; p = "hello, world"; return printf(p); }'
 
 # comment
-try2s 42 'int main() {
+try2 42 'int main() {
   // ...
   return 42;
 }'
-try2s 42 'int main() {
+try2 42 'int main() {
   /* ... */
   return 42;
 }'
