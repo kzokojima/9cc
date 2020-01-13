@@ -29,7 +29,7 @@ StructMember *new_struct_member(StructDef *struct_def, Node *node) {
   member->type = node->type;
   member->name = node->name;
   member->name_len = node->len;
-  member->offset = (struct_def->member_list == NULL) ? 0 : struct_def->member_list->offset + get_type_size(node->type->ty);
+  member->offset = (struct_def->member_list == NULL) ? 0 : struct_def->member_list->offset + get_type_size(struct_def->member_list->type->ty);
   member->next = struct_def->member_list;
   struct_def->member_list = member;
   return member;

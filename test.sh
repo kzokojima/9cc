@@ -357,6 +357,36 @@ int main() {
   fn(&val);
   return val.i;
 }'
+# 構造体(リスト)
+try2 42 '
+typedef struct foo foo;
+struct foo {
+  int i;
+  foo *next;
+};
+int main() {
+  foo val1;
+  foo val2;
+  val1.i = 40;
+  val1.next = &val2;
+  val1.next->i = 2;
+  return val1.i + val2.i;
+}'
+try2 42 '
+typedef struct foo foo;
+struct foo {
+  int i;
+  foo *next;
+};
+int main() {
+  foo val1;
+  foo val2;
+  val1.i = 40;
+  val1.next = &val2;
+  val2.next = &val1;
+  val1.next->next->next->i = 2;
+  return val1.i + val2.i;
+}'
 # 列挙
 try2error '
 enum { A, A };

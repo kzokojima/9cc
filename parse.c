@@ -441,13 +441,15 @@ Node *primary() {
     }
 
     // 構造体メンバ
-    int node_kind = -1;
-    if (consume(".")) {
-      node_kind = kNodeStructMember;
-    } else if (consume("->")) {
-      node_kind = kNodeStructPointerMember;
-    }
-    if (node_kind != -1) {
+    for (;;) {
+      int node_kind = -1;
+      if (consume(".")) {
+        node_kind = kNodeStructMember;
+      } else if (consume("->")) {
+        node_kind = kNodeStructPointerMember;
+      } else {
+        break;
+      }
       Type *type = node_kind == kNodeStructMember ? node->type : node->type->ptr_to;
       if (type == NULL || type->ty != kTypeStruct) {
         error_at(tok->str, "型が不明です");
