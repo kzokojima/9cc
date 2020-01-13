@@ -342,6 +342,21 @@ int main() {
   fn(&val);
   return val.i;
 }'
+# 構造体typedef
+try2 42 '
+typedef struct foo foo;
+struct foo {
+  int i;
+};
+int fn(foo *val) {
+  val->i = val->i + 2;
+}
+int main() {
+  foo val;
+  val.i = 40;
+  fn(&val);
+  return val.i;
+}'
 # 列挙
 try2error '
 enum { A, A };

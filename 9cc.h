@@ -52,10 +52,19 @@ typedef enum {
   kNodeStructPointerMember,
 } NodeKind;
 
+
+typedef enum {
+  kTypeInt,
+  kTypePtr,
+  kTypeArray,
+  kTypeChar,
+  kTypeStruct,
+} TypeEnum;
+
 typedef struct Type Type;
 
 struct Type {
-  enum { kTypeInt, kTypePtr, kTypeArray, kTypeChar, kTypeStruct } ty;
+  TypeEnum ty;
   struct Type *ptr_to;
   size_t array_size;
   char *name;

@@ -607,10 +607,16 @@ Type *parse_type() {
         token = tok;
         return NULL;
       }
-      type->ty = kTypeInt;
-  } else {
-    return NULL;
-  }
+      if (typedef_def->ty == kTypeStruct) {
+        type->ty = kTypeStruct;
+        type->name = typedef_def->type_name;
+        type->name_len = typedef_def->type_name_len;
+      } else {
+        type->ty = kTypeInt;
+      }
+    } else {
+      return NULL;
+    }
   }
   while (consume("*")) {
     Type *t = calloc(1, sizeof(Type));
@@ -814,7 +820,17 @@ bool typedef_definition() {
     return false;
   }
   if (!enum_definition()) {
-    error("typedef定義エラーです");
+    if (consume_token(kTokenStruct)) {
+      Token *tag_tok = expect_ident();
+      Token *tok = expect_ident();
+      TypedefDef *typedef_def = new_typedef_def(tok->str, tok->len);
+      typedef_def->ty = kTypeStruct;
+      typedef_def->type_name = tag_tok->str;
+      typedef_def->type_name_len = tag_tok->len;
+      return true;
+    } else {
+      error("typedef定義エラーです");
+    }
   }
   Token *tok = expect_ident();
   new_typedef_def(tok->str, tok->len);
