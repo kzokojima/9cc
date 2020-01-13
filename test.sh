@@ -328,7 +328,20 @@ int main() {
   *p = 2;
   return val.i + *p;
 }'
-
+# 構造体引数
+try2 42 '
+struct foo {
+  int i;
+};
+int fn(struct foo *val) {
+  val->i = val->i + 2;
+}
+int main() {
+  struct foo val;
+  val.i = 40;
+  fn(&val);
+  return val.i;
+}'
 # 列挙
 try2error '
 enum { A, A };
