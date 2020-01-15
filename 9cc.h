@@ -152,6 +152,8 @@ extern Token *token;
 
 extern Node *code[100];
 
+extern FILE *output;
+
 extern void error(char *fmt, ...);
 extern void error_at(char *loc, char *fmt, ...);
 extern Token *tokenize();

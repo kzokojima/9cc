@@ -3,8 +3,8 @@
 void emit(char *fmt, ...) {
   va_list ap;
   va_start(ap, fmt);
-  vfprintf(stdout, fmt, ap);
-  fprintf(stdout, "\n");
+  vfprintf(output, fmt, ap);
+  fprintf(output, "\n");
 }
 
 void gen_string_constants() {

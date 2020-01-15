@@ -17,7 +17,7 @@ try2() {
     gcc -S -o try/tmp.s try/tmp.c
     ec=$?
   else
-    ./9cc try/tmp.c > try/tmp.s
+    ./9cc try/tmp.c
     ec=$?
   fi
   if [[ $expect_error = "1" ]]; then

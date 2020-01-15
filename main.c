@@ -13,6 +13,8 @@ void error(char *fmt, ...) {
 // 入力ファイル名
 char *filename;
 
+FILE *output;
+
 // エラーの起きた場所を報告するための関数
 // 下のようなフォーマットでエラーメッセージを表示する
 //
@@ -74,8 +76,18 @@ int main(int argc, char **argv) {
   token = tokenize();
   program();
 
+  // output
+  char *output_filename = malloc(strlen(filename) + 1);
+  strcpy(output_filename, filename);
+  char *pos = strstr(output_filename, ".c");
+  memcpy(pos, ".s", 2);
+  if ((output = fopen(output_filename, "w")) == NULL) {
+    error("ファイルが開けません");
+    return 1;
+  }
+
   // アセンブリの前半部分を出力
-  printf(".intel_syntax noprefix\n");
+  fprintf(output, ".intel_syntax noprefix\n");
 
   // 文字列定数
   gen_string_constants();
@@ -84,6 +96,8 @@ int main(int argc, char **argv) {
   for (int i = 0; code[i]; i++) {
     gen(code[i]);
   }
+
+  fclose(output);
 
   return 0;
 }
