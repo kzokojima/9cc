@@ -238,9 +238,9 @@ void gen(Node *node) {
     gen(node->rhs);
 
     // エピローグ
-    // 最後の式の結果がRAXに残っているのでそれが返り値になる
     emit("  mov rsp, rbp");
     emit("  pop rbp");
+    emit("  mov rax, 0");
     emit("  ret");
     s_in_function = 0;
     return;

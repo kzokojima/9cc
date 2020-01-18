@@ -56,6 +56,7 @@ mkdir -p try
 
 # exit
 
+assert_exp 0 ""
 assert_exp 0 "return 0;"
 assert_exp 42 "return 42;"
 assert_exp 21 "return 5+20-4;"
