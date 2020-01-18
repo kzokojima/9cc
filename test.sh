@@ -33,9 +33,7 @@ assert() {
   ./try/tmp
   actual="$?"
 
-  if [ "$actual" = "$expected" ]; then
-    echo "$input => $actual"
-  else
+  if [[ "$actual" != "$expected" ]]; then
     echo "$input => $expected expected, but got $actual"
     exit 1
   fi
@@ -43,6 +41,14 @@ assert() {
 
 assert_link_static() {
   assert "$1" "$2" "-static"
+}
+
+assert_output() {
+  local ret=$(assert 0 "$2")
+  if [[ "$ret" != "$1" ]]; then
+    echo "$1 expected, but got $ret"
+    exit 1
+  fi
 }
 
 assert_error() {
@@ -134,6 +140,7 @@ assert 42 "int main() { return fn(); } int fn() { int a; a=42; return a; }"
 assert 42 "int main() { return fn(); } int fn() { int a; a=add2(2, add2(add2(10, 10), add2(10, 10))); return a; }"
 assert 42 "int main() { return fn(42); } int fn(int x) { return x; }"
 assert 0 'int main() {print_int(1);fn(1, 2);} int fn(int x, int y) {print_int(y);if (x + y <= 100)fn(y, x + y);}'
+assert_output 1 'int main() {print_int(1);}'
 
 # pointer
 assert 42 'int main() { int i; int *p; i = 42; p = &i; return *p; }'
