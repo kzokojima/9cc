@@ -87,7 +87,7 @@ void gen(Node *node) {
       if (get_type_size(node->type->ty) == 8)
         emit("  mov rax, [rax]");
       else if (get_type_size(node->type->ty) == 4)
-        emit("  mov eax, [rax]");
+        emit("  movsx rax, WORD PTR [rax]");
       else
         emit("  movsx eax, BYTE PTR [rax]");
     }

@@ -91,6 +91,13 @@ assert_exp 20 "int _;int a;int b;int c;int d;int e;int f;int g;int h;int i;int j
 assert 0 'int main() { return (add2(3000000000, 3000000000) - 3000000000) == 3000000000; }'
 assert 1 'int main() { return (add2(1000000000, 1000000000) - 1000000000) == 1000000000; }'
 assert_exp 42 "int a; a=42;return a;0;"
+assert_output -3 "
+int main() {
+  int i1 = -12;
+  int i2 = 4;
+  print_int(i1 / i2);
+}
+"
 
 # if
 assert_exp 1  "int a; a=42;if(1)a=1;return a;"
