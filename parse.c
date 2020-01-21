@@ -25,6 +25,9 @@ int string_constants_index = 0;
 // データ型のサイズ
 int get_type_size(int type) {
   switch (type) {
+  case kTypeShort:
+  case kTypeUShort:
+    return 2;
   case kTypeInt:
   case kTypeUInt:
     return 4;
@@ -39,6 +42,8 @@ int get_type_size(int type) {
 
 int get_type_size_by_type(Type *type) {
   switch (type->ty) {
+  case kTypeShort:
+  case kTypeUShort:
   case kTypeInt:
   case kTypeUInt:
   case kTypePtr:
@@ -592,8 +597,14 @@ Type *parse_type() {
   Type *type = calloc(1, sizeof(Type));
   if (consume_ident("int")) {
     type->ty = kTypeInt;
+  } else if (consume_ident("short")) {
+    type->ty = kTypeShort;
   } else if (consume_ident("unsigned")) {
+    if (consume_ident("short")) {
+      type->ty = kTypeUShort;
+    } else {
     type->ty = kTypeUInt;
+    }
   } else if (consume_ident("char")) {
     type->ty = kTypeChar;
   } else if (consume_token(kTokenStruct)) {

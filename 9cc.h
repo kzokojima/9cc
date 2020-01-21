@@ -56,6 +56,8 @@ typedef enum {
 typedef enum {
   kTypeInt,
   kTypeUInt,
+  kTypeShort,
+  kTypeUShort,
   kTypePtr,
   kTypeArray,
   kTypeChar,

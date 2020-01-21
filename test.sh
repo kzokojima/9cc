@@ -471,4 +471,36 @@ int main() {
 }
 "
 
+
+# short/unsigned short
+assert_output -8 "
+int main() {
+  short n1;
+  n1 = -12;
+  short n2 = 4;
+  print_int(n1 + n2);
+}
+"
+assert_output 60000 "
+int main() {
+  unsigned short n1;
+  n1 = 30000;
+  unsigned short n2 = 30000;
+  print_int(n1 + n2);
+}
+"
+assert_output 60000 "
+int main() {
+  unsigned short n1;
+  n1 = 60000;
+  print_int(n1);
+}
+"
+assert_output 60000 "
+int main() {
+  unsigned short n1 = 60000;
+  print_int(n1);
+}
+"
+
 echo OK

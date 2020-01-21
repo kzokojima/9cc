@@ -90,6 +90,10 @@ void gen(Node *node) {
         emit("  movsx rax, DWORD PTR [rax]");
       else if (node->type->ty == kTypeUInt)
         emit("  mov eax, [rax]");
+      else if (node->type->ty == kTypeShort)
+        emit("  movsx rax, WORD PTR [rax]");
+      else if (node->type->ty == kTypeUShort)
+        emit("  movzx rax, WORD PTR [rax]");
       else
         emit("  movsx eax, BYTE PTR [rax]");
     }
@@ -130,6 +134,8 @@ void gen(Node *node) {
       emit("  mov [rax], rdi");
     else if (get_type_size(type->ty) == 4)
       emit("  mov [rax], edi");
+    else if (get_type_size(type->ty) == 2)
+      emit("  mov [rax], di");
     else
       emit("  mov [rax], dil");
     emit("  push rdi");
@@ -267,6 +273,9 @@ void gen(Node *node) {
             switch (size) {
             case 1:
               emit("  mov BYTE PTR [rbp-%d], %d", offset, cur->val);
+              break;
+            case 2:
+              emit("  mov WORD PTR [rbp-%d], %d", offset, cur->val);
               break;
             case 4:
               emit("  mov DWORD PTR [rbp-%d], %d", offset, cur->val);
