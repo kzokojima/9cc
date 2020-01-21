@@ -46,7 +46,7 @@ assert_link_static() {
 assert_output() {
   local ret=$(assert 0 "$2")
   if [[ "$ret" != "$1" ]]; then
-    echo "$1 expected, but got $ret"
+    echo "$2 => $1 expected, but got $ret"
     exit 1
   fi
 }
@@ -56,11 +56,6 @@ assert_error() {
 }
 
 mkdir -p try
-
-
-
-
-# exit
 
 assert_exp 0 ""
 assert_exp 0 "return 0;"
