@@ -87,7 +87,7 @@ void gen(Node *node) {
       if (get_type_size(node->type->ty) == 8)
         emit("  mov rax, [rax]");
       else if (node->type->ty == kTypeInt)
-        emit("  movsx rax, WORD PTR [rax]");
+        emit("  movsx rax, DWORD PTR [rax]");
       else if (node->type->ty == kTypeUInt)
         emit("  mov eax, [rax]");
       else
@@ -269,7 +269,7 @@ void gen(Node *node) {
               emit("  mov BYTE PTR [rbp-%d], %d", offset, cur->val);
               break;
             case 4:
-              emit("  mov WORD PTR [rbp-%d], %d", offset, cur->val);
+              emit("  mov DWORD PTR [rbp-%d], %d", offset, cur->val);
               break;
             case 8:
               emit("  mov QWORD PTR [rbp-%d], %d", offset, cur->val);

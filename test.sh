@@ -221,6 +221,18 @@ assert 42 'int a[] = { 1,2,3,42 }; int main() { return *(a + 3); }'
 assert 104 'char a[] = "hello, world"; int main() { return *a; }'
 assert 104 'char *p = "hello, world"; int main() { return *p; }'
 assert 42 'int i = 42; int *p = &i; int main() { return *p; }'
+assert_output 1000000000 "
+int main() {
+  int i = 1000000000; // 1 billion
+  print_int(i);
+}
+"
+assert_output 1000000000 "
+int main() {
+  int a[] = { 1000000000 }; // 1 billion
+  print_int(a[0]);
+}
+"
 
 # 文字リテラル
 assert 104 "int main() { char c = 'h'; return c; }"
