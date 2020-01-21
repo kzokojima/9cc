@@ -26,6 +26,7 @@ int string_constants_index = 0;
 int get_type_size(int type) {
   switch (type) {
   case kTypeInt:
+  case kTypeUInt:
     return 4;
   case kTypePtr:
     return 8;
@@ -39,6 +40,7 @@ int get_type_size(int type) {
 int get_type_size_by_type(Type *type) {
   switch (type->ty) {
   case kTypeInt:
+  case kTypeUInt:
   case kTypePtr:
   case kTypeChar:
     return get_type_size(type->ty);
@@ -590,6 +592,8 @@ Type *parse_type() {
   Type *type = calloc(1, sizeof(Type));
   if (consume_ident("int")) {
     type->ty = kTypeInt;
+  } else if (consume_ident("unsigned")) {
+    type->ty = kTypeUInt;
   } else if (consume_ident("char")) {
     type->ty = kTypeChar;
   } else if (consume_token(kTokenStruct)) {

@@ -425,4 +425,38 @@ int main() {
   return kind;
 }'
 
+# 符号なし整数(unsigned)
+assert_output 4000000000 "
+int main() {
+  unsigned u1 = 4000000000; // 4 billion
+  print_uint(u1);
+}
+"
+assert_output 4000000000 "
+int main() {
+  unsigned u1 = 2000000000; // 2 billion
+  unsigned u2 = 2000000000; // 2 billion
+  print_uint(u1 + u2);
+}
+"
+assert_output 0 "
+int main() {
+  unsigned u1 = 2000000000; // 2 billion
+  unsigned u2 = 2000000000; // 2 billion
+  print_uint(u1 - u2);
+}
+"
+assert_output 4000000000 "
+int main() {
+  unsigned u1 = 2000000000; // 2 billion
+  print_uint(u1 * 2);
+}
+"
+assert_output 1000000000 "
+int main() {
+  unsigned u1 = 3000000000; // 3 billion
+  print_uint(u1 / 3);
+}
+"
+
 echo OK
