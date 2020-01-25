@@ -296,6 +296,26 @@ Token *tokenize() {
       // 文字
       p++;
       char c = *p;
+      if (c == '\\') {
+        // escape sequences
+        p++;
+        switch (*p) {
+        case 'a': c = '\a'; break;
+        case 'b': c = '\b'; break;
+        case 'f': c = '\f'; break;
+        case 'n': c = '\n'; break;
+        case 'r': c = '\r'; break;
+        case 't': c = '\t'; break;
+        case 'v': c = '\v'; break;
+        case '\\': c = '\\'; break;
+        case '\'': c = '\''; break;
+        case '\"': c = '\"'; break;
+        case '?': c = '\?'; break;
+        case '0': c = '\0'; break;
+        default:
+          error_at(p, "トークナイズできません");
+        }
+      }
       p++;
       if (*p != '\'')
         error_at(p, "トークナイズできません");

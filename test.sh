@@ -503,4 +503,9 @@ int main() {
 }
 "
 
+# escape sequences
+assert_exp 0 "return '\0';"
+assert_exp 10 "return '\n';"
+assert_exp 13 "return '\r';"
+
 echo OK
