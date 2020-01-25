@@ -1,11 +1,6 @@
-#include "9cc.h"
+#include "codegen.h"
 
-void emit(char *fmt, ...) {
-  va_list ap;
-  va_start(ap, fmt);
-  vfprintf(output, fmt, ap);
-  fprintf(output, "\n");
-}
+#include "lib.h"
 
 void gen_string_constants() {
   StringConstant *str = string_constants;

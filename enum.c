@@ -1,6 +1,7 @@
 #include "enum.h"
 
-#include "9cc.h"
+#include <stdlib.h>
+#include <string.h>
 
 // 列挙リスト
 EnumDef *enum_def_list;

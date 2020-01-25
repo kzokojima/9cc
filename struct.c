@@ -1,6 +1,9 @@
 #include "struct.h"
 
-#include "9cc.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "lib.h"
 
 // 構造体定義リスト
 StructDef *struct_def_list;

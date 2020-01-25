@@ -1,7 +1,7 @@
 #ifndef NINECC_TYPEDEF_H_
 #define NINECC_TYPEDEF_H_
 
-#include "9cc.h"
+#include "parse.h"
 
 // typedef
 typedef struct TypedefDef TypedefDef;
@@ -17,7 +17,7 @@ struct TypedefDef {
 // typedefリスト
 extern TypedefDef *typedef_def_list;
 
-extern TypedefDef *find_typedef_def(char *str, int len);
-extern TypedefDef *new_typedef_def(char *str, int len);
+TypedefDef *find_typedef_def(char *str, int len);
+TypedefDef *new_typedef_def(char *str, int len);
 
 #endif  // NINECC_TYPEDEF_H_

@@ -1,11 +1,15 @@
-#include "9cc.h"
+#include "parse.h"
+
+#include <ctype.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "enum.h"
+#include "lib.h"
 #include "struct.h"
 #include "typedef.h"
 
-
-// 入力プログラム
-char *user_input;
 
 // 現在着目しているトークン
 Token *token;
@@ -21,6 +25,8 @@ LVar *globals;
 // 文字列定数
 StringConstant *string_constants;
 int string_constants_index = 0;
+
+Node *expr();
 
 // データ型のサイズ
 int get_type_size(int type) {

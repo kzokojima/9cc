@@ -1,6 +1,7 @@
 #include "typedef.h"
 
-#include "9cc.h"
+#include <stdlib.h>
+#include <string.h>
 
 // typedefリスト
 TypedefDef *typedef_def_list;

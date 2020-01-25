@@ -1,12 +1,7 @@
-#ifndef NINECC_9CC_H_
-#define NINECC_9CC_H_
+#ifndef NINECC_PARSE_H_
+#define NINECC_PARSE_H_
 
-#include <ctype.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <stddef.h>
 
 typedef enum {
   kNodeAdd,
@@ -105,6 +100,17 @@ struct Node {
   StringConstant *string_constant;
 };
 
+typedef struct LVar LVar;
+
+// ローカル変数の型
+struct LVar {
+  LVar *next; // 次の変数かNULL
+  char *name; // 変数の名前
+  int len;    // 名前の長さ
+  int offset; // RBPからのオフセット
+  Type *type; // データ型
+};
+
 // トークンの種類
 typedef enum {
   kTokenReserved, // 記号
@@ -134,38 +140,17 @@ struct Token {
   int len;        // トークンの長さ
 };
 
-typedef struct LVar LVar;
-
-// ローカル変数の型
-struct LVar {
-  LVar *next; // 次の変数かNULL
-  char *name; // 変数の名前
-  int len;    // 名前の長さ
-  int offset; // RBPからのオフセット
-  Type *type; // データ型
-};
-
 // ローカル変数
 extern LVar *locals;
-
-// 入力プログラム
-extern char *user_input;
 
 // 現在着目しているトークン
 extern Token *token;
 
 extern Node *code[100];
 
-extern FILE *output;
+Token *tokenize();
+void program();
+int get_type_size(int type);
+int get_type_size_by_type(Type *type);
 
-extern void error(char *fmt, ...);
-extern void error_at(char *loc, char *fmt, ...);
-extern Token *tokenize();
-extern Node *expr();
-extern void program();
-extern void gen_string_constants();
-extern void gen(Node *node);
-extern int get_type_size(int type);
-extern int get_type_size_by_type(Type *type);
-
-#endif  // NINECC_9CC_H_
+#endif  // NINECC_PARSE_H_

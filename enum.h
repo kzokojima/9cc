@@ -13,7 +13,7 @@ struct EnumDef {
 // 列挙リスト
 extern EnumDef *enum_def_list;
 
-extern EnumDef *find_enum_def(char *str, int len);
-extern EnumDef *new_enum_def(char *str, int len, int val);
+EnumDef *find_enum_def(char *str, int len);
+EnumDef *new_enum_def(char *str, int len, int val);
 
 #endif  // NINECC_ENUM_H_
