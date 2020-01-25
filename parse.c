@@ -182,6 +182,12 @@ Token *tokenize() {
         p++;
       continue;
     }
+    if (strncmp(p, "#", 1) == 0) {
+      p += 1;
+      while (*p != '\n')
+        p++;
+      continue;
+    }
 
     // ブロックコメントをスキップ
     if (strncmp(p, "/*", 2) == 0) {
@@ -603,7 +609,7 @@ Type *parse_type() {
     if (consume_ident("short")) {
       type->ty = kTypeUShort;
     } else {
-    type->ty = kTypeUInt;
+      type->ty = kTypeUInt;
     }
   } else if (consume_ident("char")) {
     type->ty = kTypeChar;
