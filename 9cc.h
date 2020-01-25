@@ -62,6 +62,7 @@ typedef enum {
   kTypeArray,
   kTypeChar,
   kTypeStruct,
+  kTypeVoid,
 } TypeEnum;
 
 typedef struct Type Type;

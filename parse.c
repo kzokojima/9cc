@@ -633,6 +633,8 @@ Type *parse_type() {
     }
   } else if (consume_ident("char")) {
     type->ty = kTypeChar;
+  } else if (consume_ident("void")) {
+    type->ty = kTypeVoid;
   } else if (consume_token(kTokenStruct)) {
     Token *tok = consume_token(kTokenIdent);
     StructDef *struct_def = find_struct_def(tok->str, tok->len);
@@ -922,11 +924,15 @@ Node *global_definition() {
         if (!(type = parse_type())) {
           error_at(token->str, "定義ではありません");
         }
+        if (type->ty == kTypeVoid) {
+          expect(')');
+          break;
+        }
         if (params == NULL) {
-            params = variable_definition(type, &locals);
+          params = variable_definition(type, &locals);
           current = params;
         } else {
-            current->next = variable_definition(type, &locals);
+          current->next = variable_definition(type, &locals);
           current = current->next;
         }
         if (current->type->ty == kTypeArray) {

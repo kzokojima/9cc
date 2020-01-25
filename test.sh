@@ -508,4 +508,25 @@ assert_exp 0 "return '\0';"
 assert_exp 10 "return '\n';"
 assert_exp 13 "return '\r';"
 
+# void
+assert_output 1 "
+void fn() {
+  print_int(1);
+}
+int main() {
+  fn();
+}
+"
+assert 0 "int main(void) {}"
+assert 1 "
+int main() {
+  void *vp;
+  int *ip;
+  int i = 1;
+  vp = &i;
+  ip = vp;
+  return *ip;
+}
+"
+
 echo OK
