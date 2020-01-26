@@ -112,9 +112,92 @@ assert_exp 3  "int a; a=42;if(0)a=1;else if(0)a=2;else a=3;return a;"
 
 # while
 assert_exp 128  "int a; a=2; while (a<100) a=a*2; return a;"
+assert_exp 15  "
+int n;
+int i = 1;
+n = 0;
+while (1) {
+  n = n + i;
+  if (i == 5) {
+    break;
+  }
+  i = i + 1;
+}
+return n;
+"
+assert 60  "
+int fn () {
+  int n;
+  int i = 1;
+  int j = 1;
+  n = 0;
+  while (1) {
+    while (1) {
+      if (j == 5) {
+        n = n + j;
+        break;
+      }
+      j = j + 1;
+    }
+    if (i == 5) {
+      n = n + i;
+      break;
+    }
+    i = i + 1;
+  }
+  return n;
+}
+int main() {
+  int n = 0;
+  n = n + fn();
+  n = n + fn();
+
+  return n;
+}
+"
 
 # for
 assert_exp 55  "int n; int i; n = 0; for (i = 0; i <= 10; i = i + 1) n = n + i; return n;"
+assert_exp 15  "
+int n;
+int i;
+n = 0;
+for (i = 1; i <= 10; i = i + 1) {
+  n = n + i;
+  if (i == 5) {
+    break;
+  }
+}
+return n;
+"
+assert 60  "
+int fn () {
+  int n;
+  int i;
+  int j;
+  n = 0;
+  for (i = 1; i <= 10; i = i + 1) {
+    for (j = 1; j <= 10; j = j + 1) {
+      if (j == 5) {
+        n = n + j;
+        break;
+      }
+    }
+    if (i == 5) {
+      n = n + i;
+      break;
+    }
+  }
+  return n;
+}
+int main() {
+  int n = 0;
+  n = n + fn();
+  n = n + fn();
+
+  return n;
+}
+"
 
 # block
 assert_exp 42 "{ return 42; }"

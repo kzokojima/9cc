@@ -58,6 +58,8 @@ void gen_val(Node *node) {
 void gen(Node *node) {
   static int s_lavel_no = 1;
   static int s_in_function = 0;
+  static int s_lavel_stack[10];
+  static int s_lavel_stack_index = -1;
   int lavel_no;
   Node *current;
   char *registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
@@ -166,7 +168,9 @@ void gen(Node *node) {
     emit("  pop rax");
     emit("  cmp rax, 0");
     emit("  je  Lend%d", lavel_no);
+    s_lavel_stack[++s_lavel_stack_index] = lavel_no;
     gen(node->rhs);
+    s_lavel_stack_index--;
     emit("  jmp Lbegin%d", lavel_no);
     emit("Lend%d:", lavel_no);
     return;
@@ -179,10 +183,15 @@ void gen(Node *node) {
     emit("  pop rax");
     emit("  cmp rax, 0");
     emit("  je  Lend%d", lavel_no);
+    s_lavel_stack[++s_lavel_stack_index] = lavel_no;
     gen(node->rhs);
+    s_lavel_stack_index--;
     gen(node->for_expression3);
     emit("  jmp Lbegin%d", lavel_no);
     emit("Lend%d:", lavel_no);
+    return;
+  case kNodeBreak:
+    emit("  jmp Lend%d", s_lavel_stack[s_lavel_stack_index]);
     return;
   case kNodeBlock:
     current = node->lhs;

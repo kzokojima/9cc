@@ -45,6 +45,7 @@ typedef enum {
   //    name: メンバー名
   //    offset: オフセット
   kNodeStructPointerMember,
+  kNodeBreak,
 } NodeKind;
 
 
@@ -127,6 +128,7 @@ typedef enum {
   kTokenStruct,   // 構造体
   kTokenEnum,     // 列挙
   kTokenTypedef,  // typedef
+  kTokenBreak,    // break
 } TokenKind;
 
 typedef struct Token Token;

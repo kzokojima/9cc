@@ -237,6 +237,12 @@ Token *tokenize() {
       continue;
     }
 
+    if (keyword_len = expect_keyword(p, "break")) {
+      cur = new_token(kTokenBreak, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+
     if (keyword_len = expect_keyword(p, "if")) {
       cur = new_token(kTokenIf, cur, p, 0);
       p += keyword_len;
@@ -750,6 +756,9 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeReturn;
     node->lhs = expr();
+  } else if (consume_token(kTokenBreak)) {
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeBreak;
   } else if (consume_token(kTokenIf)) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeIf;
