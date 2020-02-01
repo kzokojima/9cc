@@ -46,6 +46,32 @@ typedef enum {
   //    offset: オフセット
   kNodeStructPointerMember,
   kNodeBreak,
+  // switch statement
+  //    switch (expression) {
+  //    case 0:
+  //      i = 100;
+  //      break;
+  //    default:
+  //      i = 1000;
+  //      break;
+  //    }
+  //
+  //    lhs: expression
+  //    rhs: Node(kNodeSwitchCase)
+  kNodeSwitch,
+  // switch case
+  //    lhs: Node(kNodeSwitchCase, kNodeSwitchDefault)
+  //    rhs: statement Node
+  //      next: statement Node
+  //        ...
+  //    val: constant_expression
+  kNodeSwitchCase,
+  // switch default
+  //    lhs: Node(kNodeSwitchCase)
+  //    rhs: statement Node
+  //      next: statement Node
+  //        ...
+  kNodeSwitchDefault,
 } NodeKind;
 
 
@@ -129,6 +155,9 @@ typedef enum {
   kTokenEnum,     // 列挙
   kTokenTypedef,  // typedef
   kTokenBreak,    // break
+  kTokenSwitch,   // switch
+  kTokenSwitchCase,   // switch case
+  kTokenSwitchDefault,  // switch default
 } TokenKind;
 
 typedef struct Token Token;

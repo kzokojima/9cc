@@ -612,4 +612,72 @@ int main() {
 }
 "
 
+# switch
+assert 11 "
+int main() {
+  switch (1) {
+  case 0:
+    return 10;
+  case 1:
+    return 11;
+  case 2:
+    return 12;
+  }
+}
+"
+assert 11 "
+int main() {
+  int n = 0;
+  switch (n + 1) {
+  case 0:
+    n = 10;
+    break;
+  case 1:
+    n = 11;
+    break;
+  case 2:
+    n = 12;
+    break;
+  }
+  return n;
+}
+"
+assert 4 "
+int main() {
+  int n = 0;
+  switch (n + 1) {
+  case 0:
+    n = n + 1;
+    n = n + 1;
+  case 1:
+    n = n + 1;
+    n = n + 1;
+  case 2:
+    n = n + 1;
+    n = n + 1;
+  }
+  return n;
+}
+"
+assert 6 "
+int main() {
+  int n = 0;
+  switch (n + 1) {
+  case 0:
+    n = n + 1;
+    n = n + 1;
+  case 1:
+    n = n + 1;
+    n = n + 1;
+  case 2:
+    n = n + 1;
+    n = n + 1;
+  default:
+    n = n + 1;
+    n = n + 1;
+  }
+  return n;
+}
+"
+
 echo OK

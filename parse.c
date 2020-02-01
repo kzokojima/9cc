@@ -220,7 +220,7 @@ Token *tokenize() {
     }
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='
-        || *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' || *p == ']' || *p == '.') {
+        || *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' || *p == ']' || *p == '.' || *p == ':') {
       cur = new_token(kTokenReserved, cur, p++, 1);
       continue;
     }
@@ -281,6 +281,21 @@ Token *tokenize() {
     }
     if (keyword_len = expect_keyword(p, "typedef")) {
       cur = new_token(kTokenTypedef, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "switch")) {
+      cur = new_token(kTokenSwitch, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "case")) {
+      cur = new_token(kTokenSwitchCase, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "default")) {
+      cur = new_token(kTokenSwitchDefault, cur, p, 0);
       p += keyword_len;
       continue;
     }
@@ -796,6 +811,57 @@ Node *stmt() {
       error_at(token->str, "')'ではありません");
     node->rhs = stmt();
     return node;
+  } else if (consume_token(kTokenSwitch)) {
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeSwitch;
+    expect('(');
+    node->lhs = expr();
+    expect(')');
+    expect('{');
+    Node *switch_case;
+    Node **switch_case_tail = &node->rhs;
+    while (1) {
+      Token *tok;
+      if (consume_token(kTokenSwitchCase)) {
+        switch_case = calloc(1, sizeof(Node));
+        switch_case->kind = kNodeSwitchCase;
+        tok = consume_token(kTokenIdent);
+        if (tok) {
+          EnumDef *enum_def = find_enum_def(tok->str, tok->len);
+          if (enum_def) {
+            switch_case->val = enum_def->val;
+          } else {
+            error_at(tok->str, "定義されていない値です。");
+          }
+        } else {
+          switch_case->val = expect_number();
+        }
+      } else if (consume_token(kTokenSwitchDefault)) {
+        switch_case = calloc(1, sizeof(Node));
+        switch_case->kind = kNodeSwitchDefault;
+      } else {
+        error_at(token->str, "'case'ではありません");
+      }
+      expect(':');
+      *switch_case_tail = switch_case;
+      switch_case_tail = &switch_case->lhs;
+      Node *stmt_node;
+      Node **tail = &switch_case->rhs;
+      while (1) {
+        if (tok = consume_token(kTokenSwitchCase)) {
+          token = tok;
+          break;
+        } else if (tok = consume_token(kTokenSwitchDefault)) {
+          token = tok;
+          break;
+        } else if (consume("}")) {
+          return node;
+        }
+        stmt_node = stmt();
+        *tail = stmt_node;
+        tail = &stmt_node->next;
+      }
+    }
   } else if (consume("{")) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeBlock;

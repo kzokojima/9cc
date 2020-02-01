@@ -190,6 +190,48 @@ void gen(Node *node) {
     emit("  jmp Lbegin%d", lavel_no);
     emit("Lend%d:", lavel_no);
     return;
+  case kNodeSwitch:
+    lavel_no = s_lavel_no;
+    s_lavel_no++;
+
+    gen(node->lhs);
+
+    // jump
+    emit("  pop rax");
+    Node *case_node = node->rhs;
+    while (case_node) {
+      if (case_node->kind == kNodeSwitchCase) {
+        emit("  cmp rax, %d", case_node->val);
+        emit("  je  Lswitch%d_case%d", lavel_no, case_node->val);
+      } else {
+        emit("  jmp  Lswitch%d_default", lavel_no);
+      }
+      case_node = case_node->lhs;
+    }
+    emit("  jmp  Lend%d", lavel_no);
+
+    // cases
+    case_node = node->rhs;
+    s_lavel_stack[++s_lavel_stack_index] = lavel_no;
+    while (case_node) {
+      if (case_node->kind == kNodeSwitchCase) {
+        emit("Lswitch%d_case%d:", lavel_no, case_node->val);
+      } else {
+        emit("Lswitch%d_default:", lavel_no);
+      }
+      current = case_node->rhs;
+      while (current) {
+        gen(current);
+        emit("  pop rax");
+        current = current->next;
+      }
+      case_node = case_node->lhs;
+    }
+    s_lavel_stack_index--;
+    emit("Lend%d:", lavel_no);
+    emit("  push rax");
+
+    return;
   case kNodeBreak:
     emit("  jmp Lend%d", s_lavel_stack[s_lavel_stack_index]);
     return;
