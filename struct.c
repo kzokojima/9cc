@@ -11,14 +11,14 @@ StructDef *struct_def_list;
 // 構造体定義を検索する
 StructDef *find_struct_def(char *str, int len) {
   for (StructDef *var = struct_def_list; var; var = var->next)
-    if (var->name_len == len && !memcmp(var->name, str, len))
-      return var;
+    if (var->name_len == len && !memcmp(var->name, str, len)) return var;
   return NULL;
 }
 
 // 構造体定義からメンバを検索する
 StructMember *find_struct_member(StructDef *struct_def, char *str, int len) {
-  for (StructMember *member = struct_def->member_list; member; member = member->next) {
+  for (StructMember *member = struct_def->member_list; member;
+       member = member->next) {
     if (member->name_len == len && !memcmp(member->name, str, len)) {
       return member;
     }
@@ -32,7 +32,10 @@ StructMember *new_struct_member(StructDef *struct_def, Node *node) {
   member->type = node->type;
   member->name = node->name;
   member->name_len = node->len;
-  member->offset = (struct_def->member_list == NULL) ? 0 : struct_def->member_list->offset + get_type_size(struct_def->member_list->type->ty);
+  member->offset = (struct_def->member_list == NULL)
+                       ? 0
+                       : struct_def->member_list->offset +
+                             get_type_size(struct_def->member_list->type->ty);
   member->next = struct_def->member_list;
   struct_def->member_list = member;
   return member;

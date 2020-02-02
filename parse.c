@@ -10,7 +10,6 @@
 #include "struct.h"
 #include "typedef.h"
 
-
 // 現在着目しているトークン
 Token *token;
 
@@ -31,34 +30,34 @@ Node *expr();
 // データ型のサイズ
 int get_type_size(int type) {
   switch (type) {
-  case kTypeShort:
-  case kTypeUShort:
-    return 2;
-  case kTypeInt:
-  case kTypeUInt:
-    return 4;
-  case kTypePtr:
-    return 8;
-  case kTypeChar:
-    return 1;
-  default:
-    return -1;
+    case kTypeShort:
+    case kTypeUShort:
+      return 2;
+    case kTypeInt:
+    case kTypeUInt:
+      return 4;
+    case kTypePtr:
+      return 8;
+    case kTypeChar:
+      return 1;
+    default:
+      return -1;
   }
 }
 
 int get_type_size_by_type(Type *type) {
   switch (type->ty) {
-  case kTypeShort:
-  case kTypeUShort:
-  case kTypeInt:
-  case kTypeUInt:
-  case kTypePtr:
-  case kTypeChar:
-    return get_type_size(type->ty);
-  case kTypeStruct:
-    return get_struct_size(type);
-  default:
-    return -1;
+    case kTypeShort:
+    case kTypeUShort:
+    case kTypeInt:
+    case kTypeUInt:
+    case kTypePtr:
+    case kTypeChar:
+      return get_type_size(type->ty);
+    case kTypeStruct:
+      return get_struct_size(type);
+    default:
+      return -1;
   }
 }
 
@@ -92,8 +91,7 @@ StringConstant *add_string_constant(Token *tok) {
 // 次のトークンが期待している記号のときには、トークンを1つ読み進めて
 // 真を返す。それ以外の場合には偽を返す。
 bool consume(char *op) {
-  if (token->kind != kTokenReserved ||
-      strlen(op) != token->len ||
+  if (token->kind != kTokenReserved || strlen(op) != token->len ||
       memcmp(token->str, op, token->len))
     return false;
   token = token->next;
@@ -101,18 +99,15 @@ bool consume(char *op) {
 }
 
 Token *consume_token(TokenKind kind) {
-  if (token->kind != kind)
-    return false;
+  if (token->kind != kind) return false;
   Token *current = token;
   token = token->next;
   return current;
 }
 
 Token *consume_ident(char *str) {
-  if (token->kind != kTokenIdent)
-    return false;
-  if (memcmp(token->str, str, strlen(str)))
-    return false;
+  if (token->kind != kTokenIdent) return false;
+  if (memcmp(token->str, str, strlen(str))) return false;
   Token *current = token;
   token = token->next;
   return current;
@@ -129,8 +124,7 @@ void expect(char op) {
 // 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す。
 // それ以外の場合にはエラーを報告する。
 int expect_number() {
-  if (token->kind != kTokenNum)
-    error_at(token->str, "数ではありません");
+  if (token->kind != kTokenNum) error_at(token->str, "数ではありません");
   int val = token->val;
   token = token->next;
   return val;
@@ -144,9 +138,7 @@ Token *expect_ident() {
   return tok;
 }
 
-bool at_eof() {
-  return token->kind == kTokenEof;
-}
+bool at_eof() { return token->kind == kTokenEof; }
 
 // 新しいトークンを作成してcurに繋げる
 Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
@@ -184,43 +176,40 @@ Token *tokenize() {
     // 行コメントをスキップ
     if (strncmp(p, "//", 2) == 0) {
       p += 2;
-      while (*p != '\n')
-        p++;
+      while (*p != '\n') p++;
       continue;
     }
     if (strncmp(p, "#", 1) == 0) {
       p += 1;
-      while (*p != '\n')
-        p++;
+      while (*p != '\n') p++;
       continue;
     }
 
     // ブロックコメントをスキップ
     if (strncmp(p, "/*", 2) == 0) {
       char *q = strstr(p + 2, "*/");
-      if (!q)
-        error_at(p, "コメントが閉じられていません");
+      if (!q) error_at(p, "コメントが閉じられていません");
       p = q + 2;
       continue;
     }
 
-    if (! memcmp(p, "==", 2) ||
-        ! memcmp(p, "!=", 2) ||
-        ! memcmp(p, "<=", 2) ||
-        ! memcmp(p, ">=", 2)) {
+    if (!memcmp(p, "==", 2) || !memcmp(p, "!=", 2) || !memcmp(p, "<=", 2) ||
+        !memcmp(p, ">=", 2)) {
       cur = new_token(kTokenReserved, cur, p, 2);
       p += 2;
       continue;
     }
 
-    if (! memcmp(p, "->", 2)) {
+    if (!memcmp(p, "->", 2)) {
       cur = new_token(kTokenReserved, cur, p, 2);
       p += 2;
       continue;
     }
 
-    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '='
-        || *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' || *p == ']' || *p == '.' || *p == ':') {
+    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
+        *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' ||
+        *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' ||
+        *p == ']' || *p == '.' || *p == ':') {
       cur = new_token(kTokenReserved, cur, p++, 1);
       continue;
     }
@@ -301,7 +290,9 @@ Token *tokenize() {
     }
 
     if (('A' <= *p && *p <= 'Z') || *p == '_' || ('a' <= *p && *p <= 'z')) {
-      size_t len = strspn(p + 1, "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz");
+      size_t len = strspn(
+          p + 1,
+          "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz");
       len++;
       cur = new_token(kTokenIdent, cur, p, len);
       p += len;
@@ -312,8 +303,7 @@ Token *tokenize() {
       // 文字列
       p++;
       char *pos = strstr(p, "\"");
-      if (pos == NULL)
-        error_at(p, "トークナイズできません");
+      if (pos == NULL) error_at(p, "トークナイズできません");
       cur = new_token(kTokenString, cur, p, pos - p);
       p = pos + 1;
       continue;
@@ -327,25 +317,48 @@ Token *tokenize() {
         // escape sequences
         p++;
         switch (*p) {
-        case 'a': c = '\a'; break;
-        case 'b': c = '\b'; break;
-        case 'f': c = '\f'; break;
-        case 'n': c = '\n'; break;
-        case 'r': c = '\r'; break;
-        case 't': c = '\t'; break;
-        case 'v': c = '\v'; break;
-        case '\\': c = '\\'; break;
-        case '\'': c = '\''; break;
-        case '\"': c = '\"'; break;
-        case '?': c = '\?'; break;
-        case '0': c = '\0'; break;
-        default:
-          error_at(p, "トークナイズできません");
+          case 'a':
+            c = '\a';
+            break;
+          case 'b':
+            c = '\b';
+            break;
+          case 'f':
+            c = '\f';
+            break;
+          case 'n':
+            c = '\n';
+            break;
+          case 'r':
+            c = '\r';
+            break;
+          case 't':
+            c = '\t';
+            break;
+          case 'v':
+            c = '\v';
+            break;
+          case '\\':
+            c = '\\';
+            break;
+          case '\'':
+            c = '\'';
+            break;
+          case '\"':
+            c = '\"';
+            break;
+          case '?':
+            c = '\?';
+            break;
+          case '0':
+            c = '\0';
+            break;
+          default:
+            error_at(p, "トークナイズできません");
         }
       }
       p++;
-      if (*p != '\'')
-        error_at(p, "トークナイズできません");
+      if (*p != '\'') error_at(p, "トークナイズできません");
       cur = new_token(kTokenNum, cur, p, 0);
       cur->val = c;
       p++;
@@ -386,30 +399,27 @@ Node *new_node_ident(TokenKind kind, Token *token) {
 // 型を検出
 int detect_type(Node *node) {
   switch (node->kind) {
-  case kNodeNum:
-  case kNodeMul:
-  case kNodeDiv:
-  case kNodeEq:
-  case kNodeNe:
-  case kNodeLt:
-  case kNodeLe:
-    return kTypeInt;
-  case kNodeDeref:
-    return node->lhs->type->ptr_to->ty;
-  case kNodeAddr:
-    return kTypePtr;
-  case kNodeLocalVar:
-  case kNodeGlobalVar:
-    return node->type->ty;
-  case kNodeAdd:
-  case kNodeSub:
-    {
+    case kNodeNum:
+    case kNodeMul:
+    case kNodeDiv:
+    case kNodeEq:
+    case kNodeNe:
+    case kNodeLt:
+    case kNodeLe:
+      return kTypeInt;
+    case kNodeDeref:
+      return node->lhs->type->ptr_to->ty;
+    case kNodeAddr:
+      return kTypePtr;
+    case kNodeLocalVar:
+    case kNodeGlobalVar:
+      return node->type->ty;
+    case kNodeAdd:
+    case kNodeSub: {
       int ty = detect_type(node->lhs);
-      if (ty == kTypePtr)
-        return ty;
+      if (ty == kTypePtr) return ty;
       ty = detect_type(node->rhs);
-      if (ty == kTypePtr)
-        return ty;
+      if (ty == kTypePtr) return ty;
 
       return kTypeInt;
     }
@@ -423,14 +433,14 @@ Node *initializer_list(int *count) {
   node->kind = kNodeInitializerList;
   Node *current = node;
   if (token->kind == kTokenNum) {
-  for (;;) {
-    (*count)++;
-    current->next = new_node_num(expect_number());
-    current = current->next;
-    if (!consume(",")) {
-      break;
+    for (;;) {
+      (*count)++;
+      current->next = new_node_num(expect_number());
+      current = current->next;
+      if (!consume(",")) {
+        break;
+      }
     }
-  }
   } else if (token->kind == kTokenString) {
     Token *tok = consume_token(kTokenString);
     int i;
@@ -458,8 +468,7 @@ Node *primary() {
       node->kind = kNodeFuncCall;
       node->name = tok->str;
       node->len = tok->len;
-      if (consume(")"))
-        return node;
+      if (consume(")")) return node;
       node->lhs = expr();
       Node *current = node->lhs;
       for (;;) {
@@ -496,7 +505,9 @@ Node *primary() {
     }
     if (consume("[")) {
       // 配列添字
-      node = new_node(kNodeDeref, new_node(kNodeAdd, node, new_node_num(expect_number())), NULL);
+      node = new_node(kNodeDeref,
+                      new_node(kNodeAdd, node, new_node_num(expect_number())),
+                      NULL);
       expect(']');
     }
 
@@ -510,7 +521,8 @@ Node *primary() {
       } else {
         break;
       }
-      Type *type = node_kind == kNodeStructMember ? node->type : node->type->ptr_to;
+      Type *type =
+          node_kind == kNodeStructMember ? node->type : node->type->ptr_to;
       if (type == NULL || type->ty != kTypeStruct) {
         error_at(tok->str, "型が不明です");
       }
@@ -522,7 +534,8 @@ Node *primary() {
       if (member_token == NULL) {
         error_at(tok->str, "識別子ではありません");
       }
-      StructMember *member = find_struct_member(struct_def, member_token->str, member_token->len);
+      StructMember *member =
+          find_struct_member(struct_def, member_token->str, member_token->len);
       if (member == NULL) {
         error_at(member_token->str, "存在しないメンバーです");
       }
@@ -553,26 +566,23 @@ Node *primary() {
 }
 
 Node *unary() {
-  if (consume("+"))
-    return primary();
-  if (consume("-"))
-    return new_node(kNodeSub, new_node_num(0), primary());
-  if (consume("&"))
-    return new_node(kNodeAddr, primary(), NULL);
-  if (consume("*"))
-    return new_node(kNodeDeref, primary(), NULL);
+  if (consume("+")) return primary();
+  if (consume("-")) return new_node(kNodeSub, new_node_num(0), primary());
+  if (consume("&")) return new_node(kNodeAddr, primary(), NULL);
+  if (consume("*")) return new_node(kNodeDeref, primary(), NULL);
   if (consume_token(kTokenSizeof)) {
     Token *tok = token;
     Node *node = unary();
-    if ((node->kind == kNodeLocalVar || node->kind == kNodeGlobalVar) && node->type->ty == kTypeArray) {
-      return new_node_num(get_type_size(node->type->ptr_to->ty) * node->type->array_size);
+    if ((node->kind == kNodeLocalVar || node->kind == kNodeGlobalVar) &&
+        node->type->ty == kTypeArray) {
+      return new_node_num(get_type_size(node->type->ptr_to->ty) *
+                          node->type->array_size);
     } else if (tok->next->kind == kTokenSizeof) {
       // sizeof(sizeof(1))
       return new_node_num(8);
     }
     int ty = detect_type(node);
-    if (ty != -1)
-      return new_node_num(get_type_size(ty));
+    if (ty != -1) return new_node_num(get_type_size(ty));
     error("データ型が不明です");
   }
   return primary();
@@ -614,7 +624,7 @@ Node *relational() {
       node = new_node(kNodeLt, node, add());
     else if (consume(">="))
       node = new_node(kNodeLe, add(), node);
-    else  if (consume(">"))
+    else if (consume(">"))
       node = new_node(kNodeLt, add(), node);
     else
       return node;
@@ -636,14 +646,11 @@ Node *equality() {
 
 Node *assign() {
   Node *node = equality();
-  if (consume("="))
-    node = new_node(kNodeAssign, node, assign());
+  if (consume("=")) node = new_node(kNodeAssign, node, assign());
   return node;
 }
 
-Node *expr() {
-  Node *node = assign();
-}
+Node *expr() { Node *node = assign(); }
 
 // データ型
 Type *parse_type() {
@@ -715,7 +722,8 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
   lvar->name = tok->str;
   lvar->len = tok->len;
   if (ptr_var_list == &locals)
-    lvar->offset = (var_list ? var_list->offset : 0) + get_type_size_by_type(type);
+    lvar->offset =
+        (var_list ? var_list->offset : 0) + get_type_size_by_type(type);
   lvar->type = type;
   if (consume("[")) {
     // 配列定義
@@ -728,13 +736,15 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
       type->array_size = 0;
     type->ptr_to = lvar->type;
     if (ptr_var_list == &locals)
-      lvar->offset = (var_list ? var_list->offset : 0) + type->array_size * get_type_size_by_type(lvar->type);
+      lvar->offset = (var_list ? var_list->offset : 0) +
+                     type->array_size * get_type_size_by_type(lvar->type);
     lvar->type = type;
     expect(']');
   }
   if (consume("=")) {
     // 初期化
-    int is_init_str = type->ty == kTypeArray && type->ptr_to->ty == kTypeChar && token->kind == kTokenString;
+    int is_init_str = type->ty == kTypeArray && type->ptr_to->ty == kTypeChar &&
+                      token->kind == kTokenString;
     Node *node_lvar = calloc(1, sizeof(Node));
     if (consume("{") || is_init_str) {
       // 初期化子リスト
@@ -742,13 +752,14 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
       node->lhs = new_node(kNodeAssign, node_lvar, initializer_list(&count));
       type->array_size = count;
       if (ptr_var_list == &locals)
-        lvar->offset = (var_list ? var_list->offset : 0) + type->array_size * get_type_size(lvar->type->ptr_to->ty);
-      if (!is_init_str)
-      expect('}');
+        lvar->offset = (var_list ? var_list->offset : 0) +
+                       type->array_size * get_type_size(lvar->type->ptr_to->ty);
+      if (!is_init_str) expect('}');
     } else {
       node->lhs = new_node(kNodeAssign, node_lvar, expr());
     }
-    node_lvar->kind = (ptr_var_list == &locals) ? kNodeLocalVar : kNodeGlobalVar;
+    node_lvar->kind =
+        (ptr_var_list == &locals) ? kNodeLocalVar : kNodeGlobalVar;
     node_lvar->offset = lvar->offset;
     node_lvar->name = lvar->name;
     node_lvar->len = lvar->len;
@@ -777,11 +788,9 @@ Node *stmt() {
   } else if (consume_token(kTokenIf)) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeIf;
-    if (!consume("("))
-      error_at(token->str, "'('ではありません");
+    if (!consume("(")) error_at(token->str, "'('ではありません");
     node->lhs = expr();
-    if (!consume(")"))
-      error_at(token->str, "')'ではありません");
+    if (!consume(")")) error_at(token->str, "')'ではありません");
     node->rhs = stmt();
     if (consume_token(kTokenElse)) {
       node->els = stmt();
@@ -790,25 +799,21 @@ Node *stmt() {
   } else if (consume_token(kTokenWhile)) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeWhile;
-    if (!consume("("))
-      error_at(token->str, "'('ではありません");
+    if (!consume("(")) error_at(token->str, "'('ではありません");
     node->lhs = expr();
-    if (!consume(")"))
-      error_at(token->str, "')'ではありません");
+    if (!consume(")")) error_at(token->str, "')'ではありません");
     node->rhs = stmt();
     return node;
   } else if (consume_token(kTokenFor)) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeFor;
-    if (!consume("("))
-      error_at(token->str, "'('ではありません");
+    if (!consume("(")) error_at(token->str, "'('ではありません");
     node->for_clause1 = expr();
     expect(';');
     node->for_expression2 = expr();
     expect(';');
     node->for_expression3 = expr();
-    if (!consume(")"))
-      error_at(token->str, "')'ではありません");
+    if (!consume(")")) error_at(token->str, "')'ではありません");
     node->rhs = stmt();
     return node;
   } else if (consume_token(kTokenSwitch)) {
@@ -865,8 +870,7 @@ Node *stmt() {
   } else if (consume("{")) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeBlock;
-    if (consume("}"))
-      return node;
+    if (consume("}")) return node;
     node->lhs = stmt();
     current = node->lhs;
     while (!consume("}")) {
@@ -886,7 +890,7 @@ Node *stmt() {
 
 // 構造体定義
 Node *struct_definition() {
-  if (! consume_token(kTokenStruct)) {
+  if (!consume_token(kTokenStruct)) {
     return NULL;
   }
   Node *node = new_node_ident(kNodeStruct, expect_ident());
@@ -911,12 +915,11 @@ Node *struct_definition() {
 
 // 列挙定義
 bool enum_definition() {
-  if (! consume_token(kTokenEnum)) {
+  if (!consume_token(kTokenEnum)) {
     return false;
   }
   Token *tok = consume_token(kTokenIdent);
   if (tok != NULL) {
-
   }
   if (!consume("{")) {
     return false;
@@ -942,7 +945,7 @@ bool enum_definition() {
 
 // typedef定義
 bool typedef_definition() {
-  if (! consume_token(kTokenTypedef)) {
+  if (!consume_token(kTokenTypedef)) {
     return false;
   }
   if (!enum_definition()) {

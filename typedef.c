@@ -9,8 +9,7 @@ TypedefDef *typedef_def_list;
 // typedefを検索する
 TypedefDef *find_typedef_def(char *str, int len) {
   for (TypedefDef *var = typedef_def_list; var; var = var->next)
-    if (var->name_len == len && !memcmp(var->name, str, len))
-      return var;
+    if (var->name_len == len && !memcmp(var->name, str, len)) return var;
   return NULL;
 }
 

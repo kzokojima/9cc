@@ -13,22 +13,22 @@ typedef enum {
   kNodeNe,
   kNodeLt,
   kNodeLe,
-  kNodeAssign,  // =
-  kNodeLocalVar,    // ローカル変数
-  kNodeReturn,  // return
-  kNodeIf,      // if
-  kNodeWhile,   // while
-  kNodeFor,     // for
-  kNodeBlock,   // { ... }
-  kNodeFuncCall,      // foo(...)
-  kNodeFunc,  // foo(...) { ... }
-  kNodeAddr,    // &var
-  kNodeDeref,   // *ptr
-  kNodeVarDef,  // int var
-  kNodeGlobalVar,    // グローバル変数
-  kNodeString,  // 文字列
+  kNodeAssign,           // =
+  kNodeLocalVar,         // ローカル変数
+  kNodeReturn,           // return
+  kNodeIf,               // if
+  kNodeWhile,            // while
+  kNodeFor,              // for
+  kNodeBlock,            // { ... }
+  kNodeFuncCall,         // foo(...)
+  kNodeFunc,             // foo(...) { ... }
+  kNodeAddr,             // &var
+  kNodeDeref,            // *ptr
+  kNodeVarDef,           // int var
+  kNodeGlobalVar,        // グローバル変数
+  kNodeString,           // 文字列
   kNodeInitializerList,  // 初期化子リスト
-  kNodeStruct,   // 構造体
+  kNodeStruct,           // 構造体
   // 構造体メンバ
   //    foo.i = ...
   //
@@ -74,7 +74,6 @@ typedef enum {
   kNodeSwitchDefault,
 } NodeKind;
 
-
 typedef enum {
   kTypeInt,
   kTypeUInt,
@@ -100,10 +99,10 @@ struct Type {
 // 文字列定数
 typedef struct StringConstant StringConstant;
 struct StringConstant {
-  StringConstant *next;   // 次の文字列定数かNULL
-  char *str;              // 文字列
-  int len;                // 長さ
-  int index;              // インデックス
+  StringConstant *next;  // 次の文字列定数かNULL
+  char *str;             // 文字列
+  int len;               // 長さ
+  int index;             // インデックス
 };
 extern StringConstant *string_constants;
 
@@ -113,15 +112,15 @@ struct Node {
   NodeKind kind;
   Node *lhs;
   Node *rhs;
-  Node *els;  // else
+  Node *els;              // else
   Node *for_clause1;      // for
   Node *for_expression2;  // for
   Node *for_expression3;  // for
   Node *next;             // 次
   int val;
   int offset;
-  char *name; // 名前
-  int len;    // 名前の長さ
+  char *name;     // 名前
+  int len;        // 名前の長さ
   int lvar_size;  // ローカル変数サイズ
   Type *type;
   StringConstant *string_constant;
@@ -131,32 +130,32 @@ typedef struct LVar LVar;
 
 // ローカル変数の型
 struct LVar {
-  LVar *next; // 次の変数かNULL
-  char *name; // 変数の名前
-  int len;    // 名前の長さ
-  int offset; // RBPからのオフセット
-  Type *type; // データ型
+  LVar *next;  // 次の変数かNULL
+  char *name;  // 変数の名前
+  int len;     // 名前の長さ
+  int offset;  // RBPからのオフセット
+  Type *type;  // データ型
 };
 
 // トークンの種類
 typedef enum {
-  kTokenReserved, // 記号
-  kTokenIdent,    // 識別子
-  kTokenNum,      // 整数トークン
-  kTokenReturn,   // return
-  kTokenIf,       // if
-  kTokenElse,     // else
-  kTokenWhile,    // while
-  kTokenFor,      // for
-  kTokenSizeof,   // sizeof
-  kTokenEof,      // 入力の終わりを表すトークン
-  kTokenString,   // 文字列
-  kTokenStruct,   // 構造体
-  kTokenEnum,     // 列挙
-  kTokenTypedef,  // typedef
-  kTokenBreak,    // break
-  kTokenSwitch,   // switch
-  kTokenSwitchCase,   // switch case
+  kTokenReserved,       // 記号
+  kTokenIdent,          // 識別子
+  kTokenNum,            // 整数トークン
+  kTokenReturn,         // return
+  kTokenIf,             // if
+  kTokenElse,           // else
+  kTokenWhile,          // while
+  kTokenFor,            // for
+  kTokenSizeof,         // sizeof
+  kTokenEof,            // 入力の終わりを表すトークン
+  kTokenString,         // 文字列
+  kTokenStruct,         // 構造体
+  kTokenEnum,           // 列挙
+  kTokenTypedef,        // typedef
+  kTokenBreak,          // break
+  kTokenSwitch,         // switch
+  kTokenSwitchCase,     // switch case
   kTokenSwitchDefault,  // switch default
 } TokenKind;
 
@@ -164,11 +163,11 @@ typedef struct Token Token;
 
 // トークン型
 struct Token {
-  TokenKind kind; // トークンの型
-  Token *next;    // 次の入力トークン
-  int val;        // kindがkTokenNumの場合、その数値
-  char *str;      // トークン文字列
-  int len;        // トークンの長さ
+  TokenKind kind;  // トークンの型
+  Token *next;     // 次の入力トークン
+  int val;         // kindがkTokenNumの場合、その数値
+  char *str;       // トークン文字列
+  int len;         // トークンの長さ
 };
 
 // ローカル変数

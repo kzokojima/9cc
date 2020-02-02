@@ -9,8 +9,7 @@ EnumDef *enum_def_list;
 // 列挙を検索する
 EnumDef *find_enum_def(char *str, int len) {
   for (EnumDef *var = enum_def_list; var; var = var->next)
-    if (var->name_len == len && !memcmp(var->name, str, len))
-      return var;
+    if (var->name_len == len && !memcmp(var->name, str, len)) return var;
   return NULL;
 }
 

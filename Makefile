@@ -13,4 +13,7 @@ test: 9cc
 clean:
 	rm -f 9cc *.o *~ try/tmp*
 
-.PHONY: test clean
+format:
+	clang-format -i -style="{BasedOnStyle: Google}" *.c *.h
+
+.PHONY: test clean format

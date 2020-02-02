@@ -1,8 +1,8 @@
 #include "lib.h"
 
 #include <stdarg.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // 入力ファイル名
@@ -52,18 +52,15 @@ void error_at(char *loc, char *fmt, ...) {
 
   // locが含まれている行の開始地点と終了地点を取得
   char *line = loc;
-  while (user_input < line && line[-1] != '\n')
-    line--;
+  while (user_input < line && line[-1] != '\n') line--;
 
   char *end = loc;
-  while (*end != '\n')
-    end++;
+  while (*end != '\n') end++;
 
   // 見つかった行が全体の何行目なのかを調べる
   int line_num = 1;
   for (char *p = user_input; p < line; p++)
-    if (*p == '\n')
-      line_num++;
+    if (*p == '\n') line_num++;
 
   // 見つかった行を、ファイル名と行番号と一緒に表示
   int indent = fprintf(stderr, "%s:%d: ", filename, line_num);
@@ -71,7 +68,7 @@ void error_at(char *loc, char *fmt, ...) {
 
   // エラー箇所を"^"で指し示して、エラーメッセージを表示
   int pos = loc - line + indent;
-  fprintf(stderr, "%*s", pos, ""); // pos個の空白を出力
+  fprintf(stderr, "%*s", pos, "");  // pos個の空白を出力
   fprintf(stderr, "^ ");
   vfprintf(stderr, fmt, ap);
   fprintf(stderr, "\n");
