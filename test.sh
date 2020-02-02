@@ -287,6 +287,7 @@ assert 104 'int main() { char *p; p = "hello, world"; return *p; }'
 assert 101 'int main() { char *p; p = "hello, world"; return *(p + 1); }'
 assert_link_static 12 'int main() { return printf("hello, world"); }'
 assert_link_static 12 'int main() { char *p; p = "hello, world"; return printf(p); }'
+assert_output '"hello, world\"' 'int main() { print_str("\"hello, world\\\""); }'
 
 # comment
 assert 42 'int main() {

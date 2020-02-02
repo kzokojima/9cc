@@ -302,8 +302,18 @@ Token *tokenize() {
     if (*p == '"') {
       // 文字列
       p++;
-      char *pos = strstr(p, "\"");
-      if (pos == NULL) error_at(p, "トークナイズできません");
+      char *pos = p;
+      for (;;) {
+        if (*pos == '\"') {
+          break;
+        } else if (*pos == '\\') {
+          pos += 2;
+        } else if (*pos == '\0') {
+          error_at(pos, "トークナイズできません");
+        } else {
+          pos++;
+        }
+      }
       cur = new_token(kTokenString, cur, p, pos - p);
       p = pos + 1;
       continue;
