@@ -16,4 +16,8 @@ clean:
 format:
 	clang-format -i -style="{BasedOnStyle: Google}" *.c *.h
 
-.PHONY: test clean format
+env:
+	docker build -t compilerbook .
+	docker run --rm -it -v $(CURDIR):/home/user/work -w /home/user/work compilerbook
+
+.PHONY: test clean format env
