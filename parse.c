@@ -209,7 +209,7 @@ Token *tokenize() {
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
         *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' ||
         *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' ||
-        *p == ']' || *p == '.' || *p == ':') {
+        *p == ']' || *p == '.' || *p == ':' || *p == '!') {
       cur = new_token(kTokenReserved, cur, p++, 1);
       continue;
     }
@@ -570,6 +570,7 @@ Node *unary() {
   if (consume("-")) return new_node(kNodeSub, new_node_num(0), primary());
   if (consume("&")) return new_node(kNodeAddr, primary(), NULL);
   if (consume("*")) return new_node(kNodeDeref, primary(), NULL);
+  if (consume("!")) return new_node(kNodeLogicalNot, unary(), NULL);
   if (consume_token(kTokenSizeof)) {
     Token *tok = token;
     Node *node = unary();

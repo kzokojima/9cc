@@ -309,6 +309,14 @@ void gen(Node *node) {
       emit("  mov rax, [rax]");
       emit("  push rax");
       return;
+    case kNodeLogicalNot:
+      gen(node->lhs);
+      emit("  xor rax, rax");
+      emit("  pop rdi");
+      emit("  test rdi, rdi");
+      emit("  sete al");
+      emit("  push rax");
+      return;
     case kNodeVarDef:
       if (s_in_function) {
         if (node->lhs) {

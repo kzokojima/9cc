@@ -13,6 +13,9 @@ typedef enum {
   kNodeNe,
   kNodeLt,
   kNodeLe,
+  // logical NOT(!)
+  //    lhs: Node
+  kNodeLogicalNot,
   kNodeAssign,           // =
   kNodeLocalVar,         // ローカル変数
   kNodeReturn,           // return
