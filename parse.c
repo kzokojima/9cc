@@ -194,7 +194,7 @@ Token *tokenize() {
     }
 
     if (!memcmp(p, "==", 2) || !memcmp(p, "!=", 2) || !memcmp(p, "<=", 2) ||
-        !memcmp(p, ">=", 2)) {
+        !memcmp(p, ">=", 2) || !memcmp(p, "||", 2) || !memcmp(p, "&&", 2)) {
       cur = new_token(kTokenReserved, cur, p, 2);
       p += 2;
       continue;
@@ -645,8 +645,21 @@ Node *equality() {
   }
 }
 
-Node *assign() {
+Node *logical() {
   Node *node = equality();
+
+  for (;;) {
+    if (consume("||"))
+      node = new_node(kNodeLogicalOr, node, logical());
+    else if (consume("&&"))
+      node = new_node(kNodeLogicalAnd, node, logical());
+    else
+      return node;
+  }
+}
+
+Node *assign() {
+  Node *node = logical();
   if (consume("=")) node = new_node(kNodeAssign, node, assign());
   return node;
 }

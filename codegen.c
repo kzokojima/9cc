@@ -491,6 +491,18 @@ void gen(Node *node) {
       emit("  setle al");
       emit("  movzb rax, al");
       break;
+    case kNodeLogicalOr:
+      emit("  or rax, rdi");
+      emit("  cmp rax, 0");
+      emit("  setne al");
+      emit("  movzb rax, al");
+      break;
+    case kNodeLogicalAnd:
+      emit("  and rax, rdi");
+      emit("  cmp rax, 0");
+      emit("  setne al");
+      emit("  movzb rax, al");
+      break;
   }
 
   emit("  push rax");
