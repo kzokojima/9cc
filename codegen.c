@@ -438,6 +438,26 @@ void gen(Node *node) {
       return;
     case kNodeStruct:
       return;
+    case kNodeTernaryConditional:
+      lavel_no = s_lavel_no;
+      s_lavel_no++;
+
+      gen(node->lhs);
+      emit("  pop rax");
+      emit("  cmp rax, 0");
+      emit("  je  Lfalse%d", lavel_no);
+      emit("  jmp  Ltrue%d", lavel_no);
+
+      emit("Ltrue%d:", lavel_no);
+      gen(node->rhs);
+      emit("  jmp  Lelse%d", lavel_no);
+
+      emit("Lfalse%d:", lavel_no);
+      gen(node->rhs->next);
+
+      emit("Lelse%d:", lavel_no);
+
+      return;
   }
 
   gen(node->lhs);

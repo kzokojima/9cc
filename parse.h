@@ -83,6 +83,11 @@ typedef enum {
   //      next: statement Node
   //        ...
   kNodeSwitchDefault,
+  // Ternary conditional
+  //    lhs: Node
+  //    rhs: true Node
+  //      next: false Node
+  kNodeTernaryConditional,
 } NodeKind;
 
 typedef enum {

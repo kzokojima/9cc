@@ -209,7 +209,7 @@ Token *tokenize() {
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
         *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' ||
         *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' ||
-        *p == ']' || *p == '.' || *p == ':' || *p == '!') {
+        *p == ']' || *p == '.' || *p == ':' || *p == '!' || *p == '?') {
       cur = new_token(kTokenReserved, cur, p++, 1);
       continue;
     }
@@ -668,8 +668,21 @@ Node *logical() {
   }
 }
 
-Node *assign() {
+Node *ternary_conditional() {
   Node *node = logical();
+  if (consume("?")) {
+    Node *t = ternary_conditional();
+    if (!consume(":")) {
+      error_at(token->str, "三項演算子が無効です");
+    }
+    t->next = ternary_conditional();
+    node = new_node(kNodeTernaryConditional, node, t);
+  }
+  return node;
+}
+
+Node *assign() {
+  Node *node = ternary_conditional();
   if (consume("=")) node = new_node(kNodeAssign, node, assign());
   return node;
 }
