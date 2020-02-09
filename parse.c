@@ -700,6 +700,7 @@ Type *parse_type() {
     if (consume_ident("short")) {
       type->ty = kTypeUShort;
     } else {
+      consume_ident("int");
       type->ty = kTypeUInt;
     }
   } else if (consume_ident("char")) {
