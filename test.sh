@@ -561,6 +561,32 @@ int main() {
 }
 "
 
+# long long int/unsigned long long int
+assert_output 9223372036854775807 "
+int main() {
+  long long ll = 9223372036854775807; // 0x7FFFFFFFFFFFFFFF
+  print_ll(ll);
+}
+"
+assert_output -9223372036854775806 "
+int main() {
+  long long ll = -9223372036854775806; // 0xFFFFFFFFFFFFFFFF
+  print_ll(ll);
+}
+"
+assert_output 18446744073709551615 "
+int main() {
+  unsigned long long ull = 18446744073709551615; // 0xFFFFFFFFFFFFFFFF
+  print_ull(ull);
+}
+"
+assert_output 18446744073709551614 "
+int main() {
+  unsigned long long ull1 = 9223372036854775807;
+  unsigned long long ull2 = 9223372036854775807;
+  print_ull(ull1 + ull2);
+}
+"
 
 # short/unsigned short
 assert_output -8 "

@@ -70,7 +70,8 @@ void gen(Node *node) {
 
   switch (node->kind) {
     case kNodeNum:
-      emit("  push %d", node->val);
+      emit("  mov rax, %llu", node->val);
+      emit("  push rax");
       return;
     case kNodeLocalVar:
     case kNodeGlobalVar:
@@ -87,6 +88,10 @@ void gen(Node *node) {
           emit("  movsx rax, DWORD PTR [rax]");
         else if (node->type->ty == kTypeUInt)
           emit("  mov eax, [rax]");
+        else if (node->type->ty == kTypeLLong)
+          emit("  mov rax, [rax]");
+        else if (node->type->ty == kTypeULLong)
+          emit("  mov rax, [rax]");
         else if (node->type->ty == kTypeShort)
           emit("  movsx rax, WORD PTR [rax]");
         else if (node->type->ty == kTypeUShort)

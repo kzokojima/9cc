@@ -36,6 +36,8 @@ int get_type_size(int type) {
     case kTypeInt:
     case kTypeUInt:
       return 4;
+    case kTypeLLong:
+    case kTypeULLong:
     case kTypePtr:
       return 8;
     case kTypeChar:
@@ -51,6 +53,8 @@ int get_type_size_by_type(Type *type) {
     case kTypeUShort:
     case kTypeInt:
     case kTypeUInt:
+    case kTypeLLong:
+    case kTypeULLong:
     case kTypePtr:
     case kTypeChar:
       return get_type_size(type->ty);
@@ -123,9 +127,9 @@ void expect(char op) {
 
 // 次のトークンが数値の場合、トークンを1つ読み進めてその数値を返す。
 // それ以外の場合にはエラーを報告する。
-int expect_number() {
+unsigned long long expect_number() {
   if (token->kind != kTokenNum) error_at(token->str, "数ではありません");
-  int val = token->val;
+  unsigned long long val = token->val;
   token = token->next;
   return val;
 }
@@ -216,7 +220,7 @@ Token *tokenize() {
 
     if (isdigit(*p)) {
       cur = new_token(kTokenNum, cur, p, 0);
-      cur->val = strtol(p, &p, 10);
+      cur->val = strtoull(p, &p, 10);
       continue;
     }
 
@@ -390,7 +394,7 @@ Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
   return node;
 }
 
-Node *new_node_num(int val) {
+Node *new_node_num(unsigned long long val) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kNodeNum;
   node->val = val;
@@ -694,10 +698,18 @@ Type *parse_type() {
   Type *type = calloc(1, sizeof(Type));
   if (consume_ident("int")) {
     type->ty = kTypeInt;
+  } else if (consume_ident("long")) {
+    consume_ident("long");
+    consume_ident("int");
+    type->ty = kTypeLLong;
   } else if (consume_ident("short")) {
     type->ty = kTypeShort;
   } else if (consume_ident("unsigned")) {
-    if (consume_ident("short")) {
+    if (consume_ident("long")) {
+      consume_ident("long");
+      consume_ident("int");
+      type->ty = kTypeULLong;
+    } else if (consume_ident("short")) {
       type->ty = kTypeUShort;
     } else {
       consume_ident("int");

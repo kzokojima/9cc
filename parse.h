@@ -93,6 +93,8 @@ typedef enum {
 typedef enum {
   kTypeInt,
   kTypeUInt,
+  kTypeLLong,
+  kTypeULLong,
   kTypeShort,
   kTypeUShort,
   kTypePtr,
@@ -133,7 +135,7 @@ struct Node {
   Node *for_expression2;  // for
   Node *for_expression3;  // for
   Node *next;             // 次
-  int val;
+  unsigned long long val;
   int offset;
   char *name;     // 名前
   int len;        // 名前の長さ
@@ -179,11 +181,11 @@ typedef struct Token Token;
 
 // トークン型
 struct Token {
-  TokenKind kind;  // トークンの型
-  Token *next;     // 次の入力トークン
-  int val;         // kindがkTokenNumの場合、その数値
-  char *str;       // トークン文字列
-  int len;         // トークンの長さ
+  TokenKind kind;          // トークンの型
+  Token *next;             // 次の入力トークン
+  unsigned long long val;  // kindがkTokenNumの場合、その数値
+  char *str;               // トークン文字列
+  int len;                 // トークンの長さ
 };
 
 // ローカル変数
