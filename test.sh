@@ -636,6 +636,15 @@ int main() {
 }
 "
 
+# binary
+assert_exp 0 "return 0b0;"
+assert_exp 0 "return 0b00000000;"
+assert_exp 1 "return 0b1;"
+assert_exp 1 "return 0b01;"
+assert_exp 2 "return 0b10;"
+assert_exp 3 "return 0b11;"
+assert_exp 170 "return 0b10101010;"
+
 # escape sequences
 assert_exp 0 "return '\0';"
 assert_exp 10 "return '\n';"

@@ -220,7 +220,7 @@ Token *tokenize() {
 
     if (isdigit(*p)) {
       cur = new_token(kTokenNum, cur, p, 0);
-      cur->val = strtoull(p, &p, 0);
+      cur->val = mystrtoull(p, &p);
       continue;
     }
 

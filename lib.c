@@ -89,3 +89,31 @@ char *read_file(char *filename, int buffer_size) {
 
   return buffer;
 }
+
+// Interprets an integer value in a byte string
+//  interpreting string:
+//    100
+//    0100
+//    0x100
+//    0b100
+unsigned long long mystrtoull(const char *str, char **str_end) {
+  if (!strncmp(str, "0b", 2)) {
+    unsigned long long num = 0;
+    str += 2;
+    while (*str) {
+      if (*str == '0') {
+        num <<= 1;
+      } else if (*str == '1') {
+        num <<= 1;
+        num += 1;
+      } else {
+        break;
+      }
+      str++;
+    }
+    *str_end = (char *)str;
+    return num;
+  } else {
+    return strtoull(str, str_end, 0);
+  }
+}

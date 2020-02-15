@@ -13,5 +13,6 @@ void emit(char *fmt, ...);
 void error(char *fmt, ...);
 void error_at(char *loc, char *fmt, ...);
 char *read_file(char *filename, int buffer_size);
+unsigned long long mystrtoull(const char *str, char **str_end);
 
 #endif  // NINECC_LIB_H_
