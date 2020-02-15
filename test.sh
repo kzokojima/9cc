@@ -22,11 +22,16 @@ assert() {
   fi
   if [[ $expect_error = "1" ]]; then
     if [[ $ec = 0 ]]; then
-      echo "error expected, but success"
+      echo "error expected, but success" 1>&2
       exit 1
     else
-      echo "error expected"
+      echo "error expected" 1>&2
       return 0
+    fi
+  else
+    if [[ $ec != 0 ]]; then
+      echo "compile error" 1>&2
+      exit 1
     fi
   fi
   gcc $gcc_opt -o try/tmp try/tmp.s fn.c
@@ -34,7 +39,7 @@ assert() {
   actual="$?"
 
   if [[ "$actual" != "$expected" ]]; then
-    echo "$input => $expected expected, but got $actual"
+    echo "$input => $expected expected, but got $actual" 1>&2
     exit 1
   fi
 }
@@ -46,7 +51,7 @@ assert_link_static() {
 assert_output() {
   local ret=$(assert 0 "$2")
   if [[ "$ret" != "$1" ]]; then
-    echo "$2 => $1 expected, but got $ret"
+    echo "$2 => $1 expected, but got $ret" 1>&2
     exit 1
   fi
 }
