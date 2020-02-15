@@ -117,3 +117,14 @@ unsigned long long mystrtoull(const char *str, char **str_end) {
     return strtoull(str, str_end, 0);
   }
 }
+
+int strcount(char *str, char *end, char c) {
+  int no = 0;
+  while (str != end) {
+    if (*str == c) {
+      no++;
+    }
+    str++;
+  }
+  return no;
+}

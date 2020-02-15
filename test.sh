@@ -782,4 +782,16 @@ assert_exp 2 "return (0 ? 0 : 1) ? 2 : 3;"
 assert_exp 3 "return (1 ? 0 : 1) ? 2 : 3;"
 assert_exp 4 "return 1 ? 2 ? 3 ? 4 : 5 : 6 : 7;"
 
+# __FILE__ / __LINE__
+assert_output try/tmp.c  "
+int main() {
+  print_str(__FILE__);
+}
+"
+assert 3  "
+int main() {
+  return __LINE__;
+}
+"
+
 echo OK

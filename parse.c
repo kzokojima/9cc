@@ -495,6 +495,28 @@ Node *primary() {
       }
     }
 
+    // __FILE__
+    if (!strncmp(tok->str, "__FILE__", 8)) {
+      Token tok;
+      tok.str = filename;
+      tok.len = strlen(filename);
+
+      // 文字列
+      StringConstant *string_constant = find_string_constant(&tok);
+      if (string_constant == NULL) {
+        string_constant = add_string_constant(&tok);
+      }
+      Node *node = calloc(1, sizeof(Node));
+      node->kind = kNodeString;
+      node->string_constant = string_constant;
+      return node;
+    }
+
+    // __LINE__
+    if (!strncmp(tok->str, "__LINE__", 8)) {
+      return new_node_num(strcount(user_input, tok->str, '\n') + 1);
+    }
+
     Node *node = calloc(1, sizeof(Node));
     LVar *lvar = find_var(tok, locals);
     EnumDef *enum_def = find_enum_def(tok->str, tok->len);
