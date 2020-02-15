@@ -11,7 +11,7 @@ test: 9cc
 	./test.sh
 
 clean:
-	rm -f 9cc *.o *~ try/tmp*
+	rm -f 9cc *.o *~ try/tmp* tests/*/*.s tests/*/test
 
 format:
 	clang-format -i -style="{BasedOnStyle: Google}" *.c *.h

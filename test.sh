@@ -794,4 +794,6 @@ int main() {
 }
 "
 
+. tests/plt/test.sh
+
 echo OK

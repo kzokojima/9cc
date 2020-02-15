@@ -1,5 +1,7 @@
 #include "codegen.h"
 
+#include <string.h>
+
 #include "lib.h"
 
 void gen_string_constants() {
@@ -262,11 +264,17 @@ void gen(Node *node) {
         emit("  pop %s", registers[i - 1]);
         current = current->next;
       }
+      char *plt = "@PLT";
+      for (i = 0; code[i]; i++) {
+        if (code[i]->kind == kNodeFunc && !strncmp(code[i]->name, node->name, node->len)) {
+          plt = "";
+        }
+      }
       emit("  push r15");
       emit("  mov r15, rsp");
       emit("  and spl, 0xF0");
       emit("  mov al, 0");
-      emit("  call %1$.*2$s", node->name, node->len);
+      emit("  call %1$.*2$s%3$s", node->name, node->len, plt);
       emit("  mov rsp, r15");
       emit("  pop r15");
       emit("  push rax");
