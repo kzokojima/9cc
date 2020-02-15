@@ -592,6 +592,18 @@ int main() {
   print_ull(ull1 + ull2);
 }
 "
+assert_output 9223372036854775807 "
+int main() {
+  long long ll = 0777777777777777777777;
+  print_ll(ll);
+}
+"
+assert_output 9223372036854775807 "
+int main() {
+  long long ll = 0x7FFFFFFFFFFFFFFF;
+  print_ll(ll);
+}
+"
 
 # short/unsigned short
 assert_output -8 "
