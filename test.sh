@@ -44,10 +44,6 @@ assert() {
   fi
 }
 
-assert_link_static() {
-  assert "$1" "$2" "-static"
-}
-
 assert_output() {
   local ret=$(assert 0 "$2")
   if [[ "$ret" != "$1" ]]; then
@@ -290,8 +286,8 @@ assert 2 "int main() { char a[2]; *(a + 1) = 2; return fn(a); } int fn(char a[2]
 # string
 assert 104 'int main() { char *p; p = "hello, world"; return *p; }'
 assert 101 'int main() { char *p; p = "hello, world"; return *(p + 1); }'
-assert_link_static 12 'int main() { return printf("hello, world"); }'
-assert_link_static 12 'int main() { char *p; p = "hello, world"; return printf(p); }'
+assert 12 'int main() { return printf("hello, world"); }'
+assert 12 'int main() { char *p; p = "hello, world"; return printf(p); }'
 assert_output '"hello, world\"' 'int main() { print_str("\"hello, world\\\""); }'
 
 # comment
