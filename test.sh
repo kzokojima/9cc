@@ -792,4 +792,19 @@ int main() {
 
 . tests/plt/test.sh
 
+# マクロ
+assert 42 "
+#define FOO 42
+int main() {
+  return FOO;
+}
+"
+
+assert 42 "
+#define FOO 30 + 3
+int main() {
+  return FOO * 4;
+}
+"
+
 echo OK

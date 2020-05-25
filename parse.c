@@ -7,6 +7,7 @@
 
 #include "enum.h"
 #include "lib.h"
+#include "macro.h"
 #include "struct.h"
 #include "typedef.h"
 
@@ -26,6 +27,8 @@ StringConstant *string_constants;
 int string_constants_index = 0;
 
 Node *expr();
+
+bool in_preprocessor_directive = false;
 
 // データ型のサイズ
 int get_type_size(int type) {
@@ -134,7 +137,7 @@ unsigned long long expect_number() {
   return val;
 }
 
-Token *expect_ident() {
+Token *expect_ident(void) {
   Token *tok = consume_token(kTokenIdent);
   if (tok == NULL) {
     error_at(token->str, "識別子ではありません");
@@ -171,9 +174,25 @@ Token *tokenize() {
   int keyword_len;
 
   while (*p) {
+    // プリプロセッサディレクティブ終端
+    if (in_preprocessor_directive && *p == '\n') {
+      cur = new_token(kTokenNewline, cur, p, 0);
+      in_preprocessor_directive = false;
+      p++;
+      continue;
+    }
+
     // 空白文字をスキップ
     if (isspace(*p)) {
       p++;
+      continue;
+    }
+
+    // マクロ
+    if (keyword_len = expect_keyword(p, "#define")) {
+      cur = new_token(kTokenMacro, cur, p, 0);
+      p += keyword_len;
+      in_preprocessor_directive = true;
       continue;
     }
 
@@ -515,6 +534,14 @@ Node *primary() {
     // __LINE__
     if (!strncmp(tok->str, "__LINE__", 8)) {
       return new_node_num(strcount(user_input, tok->str, '\n') + 1);
+    }
+
+    // マクロ
+    MacroDef *macro_def = find_macro_def(tok->str, tok->len);
+    if (macro_def) {
+      macro_def->end_tok->next = token;
+      token = macro_def->tok;
+      return primary();
     }
 
     Node *node = calloc(1, sizeof(Node));
@@ -1038,12 +1065,31 @@ bool typedef_definition() {
   return true;
 }
 
+// マクロ
+bool macro() {
+  if (!consume_token(kTokenMacro)) {
+    return false;
+  }
+  Token *tok = expect_ident();
+  if (find_macro_def(tok->str, tok->len)) {
+    error_at(tok->str, "そのマクロは定義済みです");
+  }
+  MacroDef *macro_def = new_macro_def(tok->str, tok->len, token);
+  do {
+    macro_def->end_tok = token;
+    token = token->next;
+  } while (token->kind != kTokenNewline);
+  token = token->next;
+  return true;
+}
+
 // グローバル定義
 //
 // - 関数
 // - グローバル変数
 // - 構造体
 // - 列挙
+// - マクロ
 Node *global_definition() {
   Node *node;
   Type *type;
@@ -1060,11 +1106,14 @@ Node *global_definition() {
     expect(';');
     return NULL;
   }
+  if (macro()) {
+    return NULL;
+  }
   token = cur;
   if (!(type = parse_type())) {
     error_at(token->str, "定義ではありません");
   }
-  Token *tok = expect_ident(kTokenIdent);
+  Token *tok = expect_ident();
   if (consume("(")) {
     // 関数定義
     locals = NULL;
