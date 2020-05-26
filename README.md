@@ -1,5 +1,7 @@
 # 9cc
 
+![C/C++ CI](https://github.com/kzokojima/9cc/workflows/C/C++%20CI/badge.svg)
+
 ## Reference materials
 
 * [低レイヤを知りたい人のためのCコンパイラ作成入門](https://www.sigbus.info/compilerbook/)
