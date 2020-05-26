@@ -807,4 +807,12 @@ int main() {
 }
 "
 
+assert 42 "
+#define FOO 12+2+2
+#define BAR FOO * FOO
+int main() {
+  return BAR;
+}
+"
+
 echo OK
