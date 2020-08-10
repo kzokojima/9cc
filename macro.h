@@ -3,6 +3,13 @@
 
 #include "parse.h"
 
+typedef struct MacroParam MacroParam;
+struct MacroParam {
+  char *name;
+  int name_len;
+  MacroParam *next;
+};
+
 // マクロ
 typedef struct MacroDef MacroDef;
 struct MacroDef {
@@ -11,12 +18,14 @@ struct MacroDef {
   int name_len;
   Token *tok;
   Token *end_tok;
+  MacroParam *param;
 };
 
 // マクロリスト
 extern MacroDef *macro_def_list;
 
-MacroDef *find_macro_def(char *str, int len);
+MacroDef *find_macro_def(char *str, int len, int depth);
 MacroDef *new_macro_def(char *str, int len, Token *tok);
+void rollback_macro_def(int macro_rollback_num);
 
 #endif  // NINECC_MACRO_H_

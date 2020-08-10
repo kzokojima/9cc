@@ -815,4 +815,56 @@ int main() {
 }
 "
 
+assert_error "
+#define FOO(v) v+v
+int main() {
+  return FOO;
+}
+"
+
+assert 42 "
+#define FOO(v) v+v
+int main() {
+  return FOO(21);
+}
+"
+
+assert 42 "
+#define FOO(a, b) a+b
+int main() {
+  return FOO(40, 2);
+}
+"
+
+assert 42 "
+#define FOO(a, b) a+b
+int main() {
+  return FOO(3*7, 3*7);
+}
+"
+
+assert 42 "
+#define FOO(a, b) a*b
+int main() {
+  return FOO(12+2+2, 12+2+2);
+}
+"
+
+assert 42 "
+#define FOO(v) v+v
+int main() {
+  int v = 2;
+  return FOO(20) + v;
+}
+"
+
+assert 42 "
+#define FOO(v) v+v
+#define BAR(v) FOO(v)
+int main() {
+  int v = 2;
+  return BAR(20) + v;
+}
+"
+
 echo OK
