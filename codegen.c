@@ -183,6 +183,22 @@ void gen(Node *node) {
       emit("  jmp Lbegin%d", lavel_no);
       emit("Lend%d:", lavel_no);
       return;
+    case kNodeDoWhile:
+      lavel_no = s_lavel_no;
+      s_lavel_no++;
+      emit("  jmp Lbody%d", lavel_no);
+      emit("Lbegin%d:", lavel_no);
+      gen(node->lhs);
+      emit("  pop rax");
+      emit("  cmp rax, 0");
+      emit("  je  Lend%d", lavel_no);
+      s_lavel_stack[++s_lavel_stack_index] = lavel_no;
+      emit("Lbody%d:", lavel_no);
+      gen(node->rhs);
+      s_lavel_stack_index--;
+      emit("  jmp Lbegin%d", lavel_no);
+      emit("Lend%d:", lavel_no);
+      return;
     case kNodeFor:
       lavel_no = s_lavel_no;
       s_lavel_no++;

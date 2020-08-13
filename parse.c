@@ -290,6 +290,11 @@ Token *tokenize() {
       p += keyword_len;
       continue;
     }
+    if (keyword_len = expect_keyword(p, "do")) {
+      cur = new_token(kTokenReserved, cur, p, keyword_len);
+      p += keyword_len;
+      continue;
+    }
     if (keyword_len = expect_keyword(p, "for")) {
       cur = new_token(kTokenFor, cur, p, 0);
       p += keyword_len;
@@ -967,6 +972,16 @@ Node *stmt() {
     node->lhs = expr();
     if (!consume(")")) error_at(token->str, "')'ではありません");
     node->rhs = stmt();
+    return node;
+  } else if (consume("do")) {  // do-while
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeDoWhile;
+    node->rhs = stmt();
+    if (!consume_token(kTokenWhile)) error_at(token->str, "'while'ではありません");
+    if (!consume("(")) error_at(token->str, "'('ではありません");
+    node->lhs = expr();
+    if (!consume(")")) error_at(token->str, "')'ではありません");
+    if (!consume(";")) error_at(token->str, "';'ではありません");
     return node;
   } else if (consume_token(kTokenFor)) {
     node = calloc(1, sizeof(Node));

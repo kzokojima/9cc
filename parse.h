@@ -29,6 +29,7 @@ typedef enum {
   kNodeReturn,           // return
   kNodeIf,               // if
   kNodeWhile,            // while
+  kNodeDoWhile,          // do-while
   kNodeFor,              // for
   kNodeBlock,            // { ... }
   kNodeFuncCall,         // foo(...)

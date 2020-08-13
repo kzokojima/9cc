@@ -163,6 +163,18 @@ int main() {
 }
 "
 
+# do-while
+assert 42 "
+int main() {
+  int max = 42;
+  int i = 0;
+  do {
+    i = i + 1;
+  } while (i < max);
+  return i;
+}
+"
+
 # for
 assert_exp 55  "int n; int i; n = 0; for (i = 0; i <= 10; i = i + 1) n = n + i; return n;"
 assert_exp 15  "
