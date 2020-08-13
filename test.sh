@@ -880,4 +880,20 @@ int main() {
 }
 "
 
+assert 42 "
+#define SWAP(x, y) \
+  do { \
+    tmp = x; \
+    x = y; \
+    y = tmp; \
+  } while (0)
+int main() {
+  int tmp;
+  int i = 0;
+  int j = 42;
+  SWAP(i, j);
+  return i;
+}
+"
+
 echo OK

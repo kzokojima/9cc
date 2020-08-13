@@ -512,40 +512,49 @@ Node *initializer_list(int *count) {
 
 // マクロを展開する
 Token *expand_macro(Token *tok, MacroDef *macro_def) {
-  // パラメータをマクロとして登録
-  int macro_rollback_num = 0;
-  MacroParam *param = macro_def->param;
-  for (;param != NULL;) {
-    macro_rollback_num++;
-    MacroDef *macro_def = new_macro_def(param->name, param->name_len, token);
-    do {
-      macro_def->end_tok = token;
-      token = token->next;
-    } while (! consume(")") && ! consume(","));
-    param = param->next;
-  }
+  if (macro_def->param) {
+    // 関数形式マクロ
+    if (! consume("(")) {
+      error_at(tok->str, "マクロ形式が違います");
+    }
+    // パラメータをマクロとして登録
+    int macro_rollback_num = 0;
+    MacroParam *param = macro_def->param;
+    for (;param != NULL;) {
+      macro_rollback_num++;
+      MacroDef *macro_def = new_macro_def(param->name, param->name_len, token);
+      do {
+        macro_def->end_tok = token;
+        token = token->next;
+      } while (! consume(")") && ! consume(","));
+      param = param->next;
+    }
 
-  // トークン列をコピーし、パラメータを置き換える
-  Token *head = copy_tokens(macro_def->tok, macro_def->end_tok, token);
-  Token *cur = head, *prev = NULL;
-  for (; cur != token; cur = cur->next) {
-    if (cur->kind == kTokenIdent) {
-      MacroDef *macro_def = find_macro_def(cur->str, cur->len, macro_rollback_num);
-      if (macro_def) {
-        Token *copy = copy_tokens(macro_def->tok, macro_def->end_tok, cur->next);
-        if (prev) {
-          prev->next = copy;
-        } else {
-          head = copy;
+    // トークン列をコピーし、パラメータを置き換える
+    Token *head = copy_tokens(macro_def->tok, macro_def->end_tok, token);
+    Token *cur = head, *prev = NULL;
+    for (; cur != token; cur = cur->next) {
+      if (cur->kind == kTokenIdent) {
+        MacroDef *macro_def = find_macro_def(cur->str, cur->len, macro_rollback_num);
+        if (macro_def) {
+          Token *copy = copy_tokens(macro_def->tok, macro_def->end_tok, cur->next);
+          if (prev) {
+            prev->next = copy;
+          } else {
+            head = copy;
+          }
         }
       }
+      prev = cur;
     }
-    prev = cur;
+
+    rollback_macro_def(macro_rollback_num);
+
+    return head;
+  } else {
+    macro_def->end_tok->next = token;
+    return macro_def->tok;
   }
-
-  rollback_macro_def(macro_rollback_num);
-
-  return head;
 }
 
 Node *primary() {
@@ -560,16 +569,7 @@ Node *primary() {
     // マクロ
     MacroDef *macro_def = find_macro_def(tok->str, tok->len, 0);
     if (macro_def) {
-      if (macro_def->param) {
-        if (! consume("(")) {
-          error_at(tok->str, "マクロ形式が違います");
-        }
-        // 関数形式マクロ
-        token = expand_macro(token, macro_def);
-      } else {
-        macro_def->end_tok->next = token;
-        token = macro_def->tok;
-      }
+      token = expand_macro(token, macro_def);
       return primary();
     }
 
@@ -947,6 +947,17 @@ Node *stmt() {
   Node *current;
   Type *type;
 
+  Token *tok = consume_token(kTokenIdent);
+  if (tok) {
+    // マクロ
+    MacroDef *macro_def = find_macro_def(tok->str, tok->len, 0);
+    if (macro_def) {
+      token = expand_macro(token, macro_def);
+      return stmt();
+    } else {
+      token = tok;
+    }
+  }
   if (consume_token(kTokenReturn)) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeReturn;
