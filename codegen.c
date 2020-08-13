@@ -153,6 +153,9 @@ void gen(Node *node) {
       emit("  pop rbp");
       emit("  ret");
       return;
+    case kNodeNOP:
+      emit("  push rax");
+      return;
     case kNodeIf:
       lavel_no = s_lavel_no;
       s_lavel_no++;

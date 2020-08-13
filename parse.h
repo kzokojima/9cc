@@ -27,6 +27,7 @@ typedef enum {
   kNodeAssign,           // =
   kNodeLocalVar,         // ローカル変数
   kNodeReturn,           // return
+  kNodeNOP,              // NOP
   kNodeIf,               // if
   kNodeWhile,            // while
   kNodeDoWhile,          // do-while

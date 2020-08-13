@@ -1059,6 +1059,10 @@ Node *stmt() {
     return node;
   } else if (type = parse_type()) {
     node = variable_definition(type, &locals);
+  } else if (consume(";")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeNOP;
+    return node;
   } else {
     node = expr();
   }
