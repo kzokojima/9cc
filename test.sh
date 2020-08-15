@@ -60,6 +60,19 @@ assert_error() {
   assert "" "$1" "" 1
 }
 
+define_assert="
+#define assert(expr) \
+do { \
+  if (!(expr)) { \
+    p(\"Assertion \`\"); \
+    p(#expr); \
+    p(\"' failed.\\n\"); \
+    fflush(0); \
+    abort(); \
+  } \
+} while (0)
+"
+
 mkdir -p try
 
 assert_exp 0 ""
@@ -907,6 +920,20 @@ int main() {
   p(0 == 1);
 }
 '
+
+assert 0 "
+$define_assert
+int main() {
+  assert(1 == (1));
+}
+"
+
+assert 134 "
+$define_assert
+int main() {
+  assert(0 == (1));
+}
+"
 
 end=$(($(date +%s%N)/1000000))
 time=$((end - start))

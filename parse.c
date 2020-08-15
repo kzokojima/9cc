@@ -533,12 +533,29 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
     int macro_rollback_num = 0;
     MacroParam *param = macro_def->param;
     for (;param != NULL;) {
+      int parenthesis_level = 0;
       macro_rollback_num++;
       MacroDef *macro_def = new_macro_def(param->name, param->name_len, token);
-      do {
-        macro_def->end_tok = token;
-        token = token->next;
-      } while (! consume(")") && ! consume(","));
+      Token *tok;
+      for (;;) {
+        tok = token;
+        if (consume("(")) {
+          parenthesis_level++;
+        } else if (consume(")")) {
+          if (parenthesis_level == 0) {
+            break;
+          }
+          parenthesis_level--;
+        } else if (consume(",")) {
+          if (parenthesis_level == 0) {
+            break;
+          }
+        } else {
+          tok = token;
+          token = token->next;
+        }
+        macro_def->end_tok = tok;
+      }
       param = param->next;
     }
 
