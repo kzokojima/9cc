@@ -6,7 +6,11 @@ assert_exp() {
   assert $expected "int main(){ $input }"
 }
 
+start=$(($(date +%s%N)/1000000))
+assert_count=0
+
 assert() {
+  let assert_count++
   expected="$1"
   input="$2"
   gcc_opt="${3:-}"
@@ -904,4 +908,8 @@ int main() {
 }
 '
 
-echo OK
+end=$(($(date +%s%N)/1000000))
+time=$((end - start))
+echo
+echo "Time: $time ms"
+echo "OK ($assert_count assertions)"
