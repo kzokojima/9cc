@@ -896,4 +896,12 @@ int main() {
 }
 "
 
+assert_output '0 == 1' '
+#define pp(expr) print_str(#expr)
+#define p(expr) pp(expr)
+int main() {
+  p(0 == 1);
+}
+'
+
 echo OK

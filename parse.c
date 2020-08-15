@@ -153,7 +153,9 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
   tok->kind = kind;
   tok->str = str;
   tok->len = len;
-  cur->next = tok;
+  if (cur) {
+    cur->next = tok;
+  }
   return tok;
 }
 
@@ -191,6 +193,7 @@ Token *tokenize() {
   head.next = NULL;
   Token *cur = &head;
   int keyword_len;
+  int beginning_of_line = 1;
 
   while (*p) {
     // プリプロセッサディレクティブ終端
@@ -198,11 +201,16 @@ Token *tokenize() {
       cur = new_token(kTokenNewline, cur, p, 0);
       in_preprocessor_directive = false;
       p++;
+      beginning_of_line = 1;
       continue;
     }
 
     // 空白文字をスキップ
-    if (isspace(*p)) {
+    if (*p == '\n') {
+      p++;
+      beginning_of_line = 1;
+      continue;
+    } else if (isspace(*p)) {
       p++;
       continue;
     }
@@ -221,11 +229,13 @@ Token *tokenize() {
       while (*p != '\n') p++;
       continue;
     }
-    if (strncmp(p, "#", 1) == 0) {
+    if (beginning_of_line && strncmp(p, "#", 1) == 0) {
       p += 1;
       while (*p != '\n') p++;
       continue;
     }
+
+    beginning_of_line = 0;
 
     // ブロックコメントをスキップ
     if (strncmp(p, "/*", 2) == 0) {
@@ -251,7 +261,8 @@ Token *tokenize() {
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
         *p == ')' || *p == '<' || *p == '>' || *p == ';' || *p == '=' ||
         *p == '{' || *p == '}' || *p == ',' || *p == '&' || *p == '[' ||
-        *p == ']' || *p == '.' || *p == ':' || *p == '!' || *p == '?') {
+        *p == ']' || *p == '.' || *p == ':' || *p == '!' || *p == '?' ||
+        *p == '#') {
       cur = new_token(kTokenReserved, cur, p++, 1);
       continue;
     }
@@ -259,6 +270,7 @@ Token *tokenize() {
     if (isdigit(*p)) {
       cur = new_token(kTokenNum, cur, p, 0);
       cur->val = mystrtoull(p, &p);
+      cur->len = p - cur->str;
       continue;
     }
 
@@ -543,6 +555,21 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
           } else {
             head = copy;
           }
+        }
+      } else if (cur->kind == kTokenReserved && !strncmp(cur->str, "#", 1)) {
+        // # operator
+        cur = cur->next;
+        MacroDef *macro_def = find_macro_def(cur->str, cur->len, macro_rollback_num);
+        if (macro_def) {
+          Token *tok = new_token(kTokenString, NULL, macro_def->tok->str, macro_def->end_tok->str + macro_def->end_tok->len - macro_def->tok->str);
+          tok->next = cur->next;
+          if (prev) {
+            prev->next = tok;
+          } else {
+            head = tok;
+          }
+        } else {
+          error_at(cur->str, "未定義のパラメータです");
         }
       }
       prev = cur;
