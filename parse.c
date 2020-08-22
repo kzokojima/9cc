@@ -457,7 +457,7 @@ Node *new_node_num(unsigned long long val) {
 }
 
 // 識別子ノード
-Node *new_node_ident(TokenKind kind, Token *token) {
+Node *new_node_ident(NodeKind kind, Token *token) {
   Node *node = calloc(1, sizeof(Node));
   node->kind = kind;
   node->name = token->str;
@@ -854,7 +854,9 @@ Node *assign() {
   return node;
 }
 
-Node *expr() { Node *node = assign(); }
+Node *expr() {
+  return assign();
+}
 
 // データ型
 Type *parse_type() {
