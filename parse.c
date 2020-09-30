@@ -223,6 +223,30 @@ Token *tokenize() {
       continue;
     }
 
+    // #include
+    if (keyword_len = expect_keyword(p, "#include")) {
+      char *dest = p;
+      p += keyword_len;
+      size_t len = strspn(p, " \t");
+      p += len;
+      if (*p != '\"') {
+        if (*p == '<') {
+          len = strspn(p, "\n");
+          p += len;
+          continue;
+        }
+        error_at(p, "'\"'ではありません");
+      }
+      p++;
+      len = strcspn(p, "\"");
+      char *buffer = read_file(strndup(p, len), 1024 * 1024);
+      p += len + 2;  // `"` and `\n`
+      memmove(dest + strlen(buffer), p, strlen(p) + 1);
+      memmove(dest, buffer, strlen(buffer));
+      p = dest;
+      continue;
+    }
+
     // 行コメントをスキップ
     if (strncmp(p, "//", 2) == 0) {
       p += 2;

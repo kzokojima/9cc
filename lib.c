@@ -1,5 +1,6 @@
 #include "lib.h"
 
+#include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,12 +17,11 @@ FILE *output;
 
 void emit(char *fmt, ...) {
   if (output == NULL) {
-    char *output_filename = malloc(strlen(filename) + 1);
-    strcpy(output_filename, filename);
+    char *output_filename = basename(strdup(filename));
     char *pos = strstr(output_filename, ".c");
     memcpy(pos, ".s", 2);
     if ((output = fopen(output_filename, "w")) == NULL) {
-      error("ファイルが開けません");
+      error("ファイルが開けません(%s)", output_filename);
     }
   }
 
@@ -81,7 +81,7 @@ char *read_file(char *filename, int buffer_size) {
   char *buffer = malloc(buffer_size);
 
   if ((file = fopen(filename, "r")) == NULL) {
-    error("ファイルが開けません");
+    error("ファイルが開けません(%s)", filename);
   }
   file_size = fread(buffer, 1, buffer_size, file);
   buffer[file_size] = '\0';

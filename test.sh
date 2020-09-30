@@ -821,6 +821,7 @@ int main() {
 "
 
 . tests/plt/test.sh
+bash tests/cpp/test.sh
 
 # マクロ
 assert 42 "

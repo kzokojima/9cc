@@ -1,3 +1,7 @@
+#include <libgen.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "codegen.h"
 #include "lib.h"
 
@@ -6,9 +10,10 @@ int main(int argc, char **argv) {
     error("引数の個数が正しくありません");
   }
   filename = argv[1];
+  chdir(dirname(strdup(filename)));
 
   // トークナイズする
-  user_input = read_file(filename, 1024 * 1024);
+  user_input = read_file(basename(strdup(filename)), 1024 * 1024);
   token = tokenize();
   program();
 
