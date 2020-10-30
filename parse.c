@@ -1256,6 +1256,11 @@ bool macro() {
       param = param->next;
     }
     macro_def->tok = token;
+  } else if (token->kind == kTokenNewline) {
+    // 値なし
+    macro_def->end_tok = token;
+    token = token->next;
+    return true;
   }
   do {
     macro_def->end_tok = token;

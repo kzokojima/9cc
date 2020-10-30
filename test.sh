@@ -936,6 +936,20 @@ int main() {
 }
 "
 
+# マクロ(値なし)
+assert 42 "
+#define FOO
+int main() {
+  return 42;
+}
+"
+assert_error '
+#define FOO
+int main() {
+  return FOO;
+}
+'
+
 end=$(($(date +%s%N)/1000000))
 time=$((end - start))
 echo
