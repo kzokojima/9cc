@@ -13,5 +13,5 @@
 ## Development Environment
 
 ```
-$ make env
+$ make bash
 ```
