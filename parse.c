@@ -217,9 +217,14 @@ Token *tokenize() {
 
     // マクロ
     if (keyword_len = expect_keyword(p, "#define")) {
-      cur = new_token(kTokenMacro, cur, p, 0);
+      cur = new_token(kTokenMacroDefine, cur, p, 0);
       p += keyword_len;
       in_preprocessor_directive = true;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "#undef")) {
+      cur = new_token(kTokenMacroUndef, cur, p, 0);
+      p += keyword_len;
       continue;
     }
 
@@ -1231,8 +1236,8 @@ bool typedef_definition() {
 }
 
 // マクロ
-bool macro() {
-  if (!consume_token(kTokenMacro)) {
+bool macro_define() {
+  if (!consume_token(kTokenMacroDefine)) {
     return false;
   }
   Token *tok = expect_ident();
@@ -1270,6 +1275,15 @@ bool macro() {
   return true;
 }
 
+bool macro_undef() {
+  if (!consume_token(kTokenMacroUndef)) {
+    return false;
+  }
+  Token *tok = expect_ident();
+  delete_macro_def(tok->str, tok->len);
+  return true;
+}
+
 // グローバル定義
 //
 // - 関数
@@ -1293,7 +1307,10 @@ Node *global_definition() {
     expect(';');
     return NULL;
   }
-  if (macro()) {
+  if (macro_define()) {
+    return NULL;
+  }
+  if (macro_undef()) {
     return NULL;
   }
   token = cur;

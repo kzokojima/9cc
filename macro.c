@@ -30,6 +30,17 @@ MacroDef *new_macro_def(char *str, int len, Token *tok) {
   return macro_def;
 }
 
+void delete_macro_def(char *str, int len) {
+  MacroDef **prev = &macro_def_list;
+  for (MacroDef *var = macro_def_list; var; var = var->next) {
+    if (var->name_len == len && !memcmp(var->name, str, len)) {
+      *prev = var->next;
+      break;
+    }
+    *prev = var;
+  }
+}
+
 // マクロを巻き戻す
 void rollback_macro_def(int macro_rollback_num) {
   while (macro_rollback_num--) {

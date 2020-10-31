@@ -178,7 +178,8 @@ typedef enum {
   kTokenSwitchCase,     // switch case
   kTokenSwitchDefault,  // switch default
   kTokenNewline,
-  kTokenMacro,          // マクロ
+  kTokenMacroDefine,    // macro (#define)
+  kTokenMacroUndef,     // macro (#undef)
 } TokenKind;
 
 typedef struct Token Token;

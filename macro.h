@@ -26,6 +26,7 @@ extern MacroDef *macro_def_list;
 
 MacroDef *find_macro_def(char *str, int len, int depth);
 MacroDef *new_macro_def(char *str, int len, Token *tok);
+void delete_macro_def(char *str, int len);
 void rollback_macro_def(int macro_rollback_num);
 
 #endif  // NINECC_MACRO_H_

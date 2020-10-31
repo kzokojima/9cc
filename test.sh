@@ -950,6 +950,22 @@ int main() {
 }
 '
 
+# マクロ(#undef)
+assert_error '
+#define FOO 0
+#undef FOO
+int main() {
+  return FOO;
+}
+'
+assert 42 '
+#define FOO
+#undef FOO
+int main() {
+  return 42;
+}
+'
+
 end=$(($(date +%s%N)/1000000))
 time=$((end - start))
 echo
