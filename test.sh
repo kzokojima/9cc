@@ -966,6 +966,25 @@ int main() {
 }
 '
 
+# マクロ(#ifndef)
+assert 42 '
+#define FOO
+int main() {
+#ifndef FOO
+  return 0;
+#endif
+  return 42;
+}
+'
+assert 42 '
+int main() {
+#ifndef FOO
+  return 42;
+#endif
+  return 0;
+}
+'
+
 end=$(($(date +%s%N)/1000000))
 time=$((end - start))
 echo

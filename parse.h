@@ -180,6 +180,8 @@ typedef enum {
   kTokenNewline,
   kTokenMacroDefine,    // macro (#define)
   kTokenMacroUndef,     // macro (#undef)
+  kTokenMacroIfndef,    // macro (#ifndef)
+  kTokenMacroEndif,     // macro (#endif)
 } TokenKind;
 
 typedef struct Token Token;

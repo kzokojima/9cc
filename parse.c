@@ -27,6 +27,7 @@ StringConstant *string_constants;
 int string_constants_index = 0;
 
 Node *expr();
+bool macro_ifndef();
 
 bool in_preprocessor_directive = false;
 
@@ -224,6 +225,16 @@ Token *tokenize() {
     }
     if (keyword_len = expect_keyword(p, "#undef")) {
       cur = new_token(kTokenMacroUndef, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "#ifndef")) {
+      cur = new_token(kTokenMacroIfndef, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
+    if (keyword_len = expect_keyword(p, "#endif")) {
+      cur = new_token(kTokenMacroEndif, cur, p, 0);
       p += keyword_len;
       continue;
     }
@@ -1149,6 +1160,14 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeNOP;
     return node;
+  } else if(macro_ifndef()) {
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeNOP;
+    return node;
+  } else if(consume_token(kTokenMacroEndif)) {
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeNOP;
+    return node;
   } else {
     node = expr();
   }
@@ -1284,6 +1303,20 @@ bool macro_undef() {
   return true;
 }
 
+bool macro_ifndef() {
+  if (!consume_token(kTokenMacroIfndef)) {
+    return false;
+  }
+  Token *tok = expect_ident();
+  if (find_macro_def(tok->str, tok->len, 0)) {
+    do {
+      token = token->next;
+    } while (token->kind != kTokenMacroEndif);
+    token = token->next;
+  }
+  return true;
+}
+
 // グローバル定義
 //
 // - 関数
@@ -1311,6 +1344,9 @@ Node *global_definition() {
     return NULL;
   }
   if (macro_undef()) {
+    return NULL;
+  }
+  if (macro_ifndef() || consume_token(kTokenMacroEndif)) {
     return NULL;
   }
   token = cur;
