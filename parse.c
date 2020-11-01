@@ -387,6 +387,11 @@ Token *tokenize() {
       p += keyword_len;
       continue;
     }
+    if (keyword_len = expect_keyword(p, "extern")) {
+      cur = new_token(kTokenExtern, cur, p, 0);
+      p += keyword_len;
+      continue;
+    }
 
     if (('A' <= *p && *p <= 'Z') || *p == '_' || ('a' <= *p && *p <= 'z')) {
       size_t len = strspn(
@@ -1328,6 +1333,7 @@ Node *global_definition() {
   Node *node;
   Type *type;
   Token *cur = token;
+  int is_extern = 0;
   if (node = struct_definition()) {
     expect(';');
     return node;
@@ -1350,6 +1356,9 @@ Node *global_definition() {
     return NULL;
   }
   token = cur;
+  if (consume_token(kTokenExtern)) {
+    is_extern = 1;
+  }
   if (!(type = parse_type())) {
     error_at(token->str, "定義ではありません");
   }
@@ -1401,6 +1410,7 @@ Node *global_definition() {
     // グローバル変数定義
     token = tok;
     node = variable_definition(type, &globals);
+    node->is_extern = is_extern;
     expect(';');
     return node;
   }

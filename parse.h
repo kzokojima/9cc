@@ -144,6 +144,7 @@ struct Node {
   int lvar_size;  // ローカル変数サイズ
   Type *type;
   StringConstant *string_constant;
+  int is_extern;
 };
 
 typedef struct LVar LVar;
@@ -177,6 +178,7 @@ typedef enum {
   kTokenSwitch,         // switch
   kTokenSwitchCase,     // switch case
   kTokenSwitchDefault,  // switch default
+  kTokenExtern,         // extern
   kTokenNewline,
   kTokenMacroDefine,    // macro (#define)
   kTokenMacroUndef,     // macro (#undef)

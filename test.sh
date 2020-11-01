@@ -64,9 +64,9 @@ define_assert="
 #define assert(expr) \
 do { \
   if (!(expr)) { \
-    p(\"Assertion \`\"); \
-    p(#expr); \
-    p(\"' failed.\\n\"); \
+    print(\"Assertion \`\"); \
+    print(#expr); \
+    print(\"' failed.\\n\"); \
     fflush(0); \
     abort(); \
   } \
@@ -822,6 +822,7 @@ int main() {
 
 . tests/plt/test.sh
 bash tests/cpp/test.sh
+bash tests/gvar/test.sh
 
 # マクロ
 assert 42 "

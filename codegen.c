@@ -393,6 +393,7 @@ void gen(Node *node) {
           if (node->lhs) {
             // 初期化子リスト
             emit(".text");
+            emit(".globl %1$.*2$s", node->name, node->len);
             emit("%1$.*2$s:", node->name, node->len);
             Node *node_num = node->lhs->rhs->next;
             int size = get_type_size(node->type->ptr_to->ty);
@@ -410,7 +411,7 @@ void gen(Node *node) {
               }
               node_num = node_num->next;
             }
-          } else {
+          } else if (!node->is_extern) {
             is_bss = 1;
             bss_size = get_type_size(node->type->ptr_to->ty) * node->type->array_size;
           }
@@ -418,6 +419,7 @@ void gen(Node *node) {
           if (node->lhs) {
             // 初期化
             emit(".text");
+            emit(".globl %1$.*2$s", node->name, node->len);
             if (node->lhs->rhs->kind == kNodeString) {
               emit("%1$.*2$s:\n  .quad .LC%3$d", node->name, node->len,
                    node->lhs->rhs->string_constant->index);
@@ -432,7 +434,7 @@ void gen(Node *node) {
                      node->lhs->rhs->lhs->name, node->lhs->rhs->lhs->len);
               }
             }
-          } else {
+          } else if (!node->is_extern) {
             is_bss = 1;
             bss_size = get_type_size(node->type->ty);
           }
@@ -441,6 +443,7 @@ void gen(Node *node) {
             // 初期化
             int size = get_type_size(node->lhs->lhs->type->ty);
             emit(".text");
+            emit(".globl %1$.*2$s", node->name, node->len);
             switch (size) {
               case 1:
                 emit("%1$.*2$s:\n  .byte %3$d", node->name, node->len,
@@ -455,14 +458,14 @@ void gen(Node *node) {
                      node->lhs->rhs->val);
                 break;
             }
-          } else {
+          } else if (!node->is_extern) {
             is_bss = 1;
             bss_size = get_type_size_by_type(node->type);
           }
         }
         if (is_bss) {
-          emit(".bss");
-          emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, bss_size);
+          emit(".text");
+          emit(".comm %1$.*2$s,%3$d,%3$d", node->name, node->len, bss_size);
         }
       }
       return;
