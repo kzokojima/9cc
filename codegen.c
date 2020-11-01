@@ -387,6 +387,8 @@ void gen(Node *node) {
         }
       } else {
         // グローバル変数
+        int is_bss = 0;
+        int bss_size;
         if (node->type->ty == kTypeArray) {
           if (node->lhs) {
             // 初期化子リスト
@@ -409,10 +411,8 @@ void gen(Node *node) {
               node_num = node_num->next;
             }
           } else {
-            emit(".bss");
-            emit(
-                "%1$.*2$s:\n  .zero %3$d", node->name, node->len,
-                get_type_size(node->type->ptr_to->ty) * node->type->array_size);
+            is_bss = 1;
+            bss_size = get_type_size(node->type->ptr_to->ty) * node->type->array_size;
           }
         } else if (node->type->ty == kTypePtr) {
           if (node->lhs) {
@@ -433,9 +433,8 @@ void gen(Node *node) {
               }
             }
           } else {
-            emit(".bss");
-            emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len,
-                 get_type_size(node->type->ty));
+            is_bss = 1;
+            bss_size = get_type_size(node->type->ty);
           }
         } else {
           if (node->lhs) {
@@ -457,10 +456,13 @@ void gen(Node *node) {
                 break;
             }
           } else {
-            emit(".bss");
-            emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len,
-                 get_type_size_by_type(node->type));
+            is_bss = 1;
+            bss_size = get_type_size_by_type(node->type);
           }
+        }
+        if (is_bss) {
+          emit(".bss");
+          emit("%1$.*2$s:\n  .zero %3$d", node->name, node->len, bss_size);
         }
       }
       return;
