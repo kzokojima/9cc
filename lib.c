@@ -18,7 +18,7 @@ FILE *output;
 void emit(char *fmt, ...) {
   if (output == NULL) {
     char *output_filename = basename(strdup(filename));
-    char *pos = strstr(output_filename, ".c");
+    char *pos = strstr(output_filename, ".");
     memcpy(pos, ".s", 2);
     if ((output = fopen(output_filename, "w")) == NULL) {
       error("ファイルが開けません(%s)", output_filename);
