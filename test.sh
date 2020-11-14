@@ -822,7 +822,7 @@ int main() {
 
 . tests/plt/test.sh
 bash tests/cpp/test.sh
-bash tests/gvar/test.sh
+bash tests/extern/test.sh
 
 # マクロ
 assert 42 "

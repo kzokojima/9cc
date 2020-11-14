@@ -1401,6 +1401,10 @@ Node *global_definition() {
       }
       node->lhs = params;
     }
+    // declarations
+    if (consume(";")) {
+      return NULL;
+    }
     node->rhs = stmt();
     if (locals) {
       node->lvar_size = locals->offset;
