@@ -247,7 +247,7 @@ Token *tokenize() {
       p += len;
       if (*p != '\"') {
         if (*p == '<') {
-          len = strspn(p, "\n");
+          len = strcspn(p, "\n");
           p += len;
           continue;
         }

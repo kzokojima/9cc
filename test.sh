@@ -986,6 +986,14 @@ int main() {
 }
 '
 
+# #include
+assert 42 "
+#include <stdlib.h>
+int main() {
+  return abs(-42);
+}
+"
+
 end=$(($(date +%s%N)/1000000))
 time=$((end - start))
 echo
