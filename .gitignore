@@ -4,5 +4,7 @@
 tmp*
 a.out
 9cc
+tests/*.s
+tests/test
 tests/*/*.s
 tests/*/test

@@ -216,6 +216,12 @@ Token *tokenize() {
       continue;
     }
 
+    // backslash
+    if (*p == '\\') {
+      p += 2;
+      continue;
+    }
+
     // マクロ
     if (keyword_len = expect_keyword(p, "#define")) {
       cur = new_token(kTokenMacroDefine, cur, p, 0);

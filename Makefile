@@ -8,10 +8,13 @@ OBJS=$(SRCS:.c=.o)
 $(OBJS): *.h
 
 test: 9cc
+	./9cc tests/test.c
+	gcc -o tests/test tests/test.s fn.c
+	./tests/test
 	./test.sh
 
 clean:
-	rm -f 9cc *.o *~ try/tmp* tests/*/*.s tests/*/test
+	rm -f 9cc *.o *~ try/tmp* tests/*.s tests/*.s tests/test tests/*/*.s tests/*/test
 
 format:
 	clang-format -i -style="{BasedOnStyle: Google}" *.c *.h
