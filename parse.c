@@ -17,10 +17,11 @@ Token *token;
 Node *code[100];
 
 // ローカル変数
-LVar *locals;
+VarTable *locals;
+unsigned locals_offset;
 
 // グローバル変数
-LVar *globals;
+VarTable *globals;
 
 // 文字列定数
 StringConstant *string_constants;
@@ -70,11 +71,26 @@ int get_type_size_by_type(Type *type) {
 }
 
 // 変数を名前で検索する。見つからなかった場合はNULLを返す。
-LVar *find_var(Token *tok, LVar *var_list) {
-  for (LVar *var = var_list; var; var = var->next)
+LVar *find_var(Token *tok, VarTable *var_table) {
+  for (LVar *var = var_table->vars; var; var = var->next)
     if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
       return var;
   return NULL;
+}
+
+LVar *find_var_recursive(Token *tok, VarTable *var_table) {
+  if (! var_table) {
+    return NULL;
+  }
+  LVar *var = find_var(tok, var_table);
+  if (var) {
+    return var;
+  }
+  if (var_table->parent) {
+    return find_var_recursive(tok, var_table->parent);
+  } else {
+    return NULL;
+  }
 }
 
 // 文字列定数を検索する。見つからなかった場合はNULLを返す。
@@ -710,7 +726,7 @@ Node *primary() {
     }
 
     Node *node = calloc(1, sizeof(Node));
-    LVar *lvar = find_var(tok, locals);
+    LVar *lvar = find_var_recursive(tok, locals);
     EnumDef *enum_def = find_enum_def(tok->str, tok->len);
     if (lvar) {
       // ローカル変数
@@ -973,23 +989,21 @@ Type *parse_type() {
 }
 
 // 変数定義
-Node *variable_definition(Type *type, LVar **ptr_var_list) {
-  LVar *var_list = *ptr_var_list;
+Node *variable_definition(Type *type, VarTable *var_table) {
   Node *node;
   Token *tok = expect_ident();
-  LVar *lvar = find_var(tok, locals);
+  LVar *lvar = find_var(tok, var_table);
   if (lvar) {
     error_at(tok->str, "定義済みの変数です");
   }
   node = calloc(1, sizeof(Node));
   node->kind = kNodeVarDef;
   lvar = calloc(1, sizeof(LVar));
-  lvar->next = var_list;
+  lvar->next = var_table->vars;
   lvar->name = tok->str;
   lvar->len = tok->len;
-  if (ptr_var_list == &locals)
-    lvar->offset =
-        (var_list ? var_list->offset : 0) + get_type_size_by_type(type);
+  if (var_table != globals)
+    lvar->offset = locals_offset + get_type_size_by_type(type);
   lvar->type = type;
   if (consume("[")) {
     // 配列定義
@@ -1001,8 +1015,8 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
     else
       type->array_size = 0;
     type->ptr_to = lvar->type;
-    if (ptr_var_list == &locals)
-      lvar->offset = (var_list ? var_list->offset : 0) +
+    if (var_table != globals)
+      lvar->offset = locals_offset +
                      type->array_size * get_type_size_by_type(lvar->type);
     lvar->type = type;
     expect(']');
@@ -1017,15 +1031,14 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
       int count = 0;
       node->lhs = new_node(kNodeAssign, node_lvar, initializer_list(&count));
       type->array_size = count;
-      if (ptr_var_list == &locals)
-        lvar->offset = (var_list ? var_list->offset : 0) +
+      if (var_table != globals)
+        lvar->offset = locals_offset +
                        type->array_size * get_type_size(lvar->type->ptr_to->ty);
       if (!is_init_str) expect('}');
     } else {
       node->lhs = new_node(kNodeAssign, node_lvar, expr());
     }
-    node_lvar->kind =
-        (ptr_var_list == &locals) ? kNodeLocalVar : kNodeGlobalVar;
+    node_lvar->kind = (var_table != globals) ? kNodeLocalVar : kNodeGlobalVar;
     node_lvar->offset = lvar->offset;
     node_lvar->name = lvar->name;
     node_lvar->len = lvar->len;
@@ -1035,7 +1048,8 @@ Node *variable_definition(Type *type, LVar **ptr_var_list) {
   node->len = tok->len;
   node->offset = lvar->offset;
   node->type = lvar->type;
-  *ptr_var_list = lvar;
+  var_table->vars = lvar;
+  locals_offset = lvar->offset;
   return node;
 }
 
@@ -1158,15 +1172,19 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeBlock;
     if (consume("}")) return node;
+    VarTable *vt = calloc(1, sizeof(VarTable));
+    vt->parent = locals;
+    locals = vt;
     node->lhs = stmt();
     current = node->lhs;
     while (!consume("}")) {
       current->next = stmt();
       current = current->next;
     }
+    locals = vt->parent;
     return node;
   } else if (type = parse_type()) {
-    node = variable_definition(type, &locals);
+    node = variable_definition(type, locals);
   } else if (consume(";")) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeNOP;
@@ -1371,7 +1389,8 @@ Node *global_definition() {
   Token *tok = expect_ident();
   if (consume("(")) {
     // 関数定義
-    locals = NULL;
+    locals = calloc(1, sizeof(VarTable));
+    locals_offset = 0;
     node = calloc(1, sizeof(Node));
     node->kind = kNodeFunc;
     node->name = tok->str;
@@ -1389,16 +1408,17 @@ Node *global_definition() {
           break;
         }
         if (params == NULL) {
-          params = variable_definition(type, &locals);
+          params = variable_definition(type, locals);
           current = params;
         } else {
-          current->next = variable_definition(type, &locals);
+          current->next = variable_definition(type, locals);
           current = current->next;
         }
         if (current->type->ty == kTypeArray) {
-          locals->type->ty = kTypePtr;
-          locals->offset = locals->offset + get_type_size(kTypePtr);
-          current->offset = locals->offset;
+          locals->vars->type->ty = kTypePtr;
+          locals->vars->offset = locals->vars->offset + get_type_size(kTypePtr);
+          current->offset = locals->vars->offset;
+          locals_offset = locals->vars->offset;
         }
         if (!consume(",")) {
           expect(')');
@@ -1411,15 +1431,26 @@ Node *global_definition() {
     if (consume(";")) {
       return NULL;
     }
-    node->rhs = stmt();
-    if (locals) {
-      node->lvar_size = locals->offset;
+    // definition
+    expect('{');
+    Node *block_node = calloc(1, sizeof(Node));
+    Node *current;
+    block_node->kind = kNodeBlock;
+    if (! consume("}")) {
+      block_node->lhs = stmt();
+      current = block_node->lhs;
+      while (! consume("}")) {
+        current->next = stmt();
+        current = current->next;
+      }
     }
+    node->rhs = block_node;
+    node->lvar_size = locals_offset;
     return node;
   } else {
     // グローバル変数定義
     token = tok;
-    node = variable_definition(type, &globals);
+    node = variable_definition(type, globals);
     node->is_extern = is_extern;
     expect(';');
     return node;
@@ -1429,6 +1460,7 @@ Node *global_definition() {
 void program() {
   int i = 0;
   Node *node;
+  globals = calloc(1, sizeof(VarTable));
   while (!at_eof()) {
     node = global_definition();
     if (node) {

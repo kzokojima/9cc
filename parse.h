@@ -158,6 +158,13 @@ struct LVar {
   Type *type;  // データ型
 };
 
+typedef struct VarTable VarTable;
+
+struct VarTable {
+  VarTable *parent;
+  LVar *vars;
+};
+
 // トークンの種類
 typedef enum {
   kTokenReserved,       // 記号
@@ -198,7 +205,7 @@ struct Token {
 };
 
 // ローカル変数
-extern LVar *locals;
+extern VarTable *locals;
 
 // 現在着目しているトークン
 extern Token *token;
