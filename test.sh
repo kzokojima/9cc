@@ -820,9 +820,11 @@ int main() {
 }
 "
 
-. tests/plt/test.sh
+set -e
+bash tests/plt/test.sh
 bash tests/cpp/test.sh
 bash tests/extern/test.sh
+set +e
 
 # マクロ
 assert 42 "

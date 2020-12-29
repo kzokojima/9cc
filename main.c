@@ -10,7 +10,9 @@ int main(int argc, char **argv) {
     error("引数の個数が正しくありません");
   }
   filename = argv[1];
-  chdir(dirname(strdup(filename)));
+  if (chdir(dirname(strdup(filename))) == -1) {
+    error("引数が正しくありません");
+  }
 
   // トークナイズする
   user_input = read_file(basename(strdup(filename)), 1024 * 1024);
