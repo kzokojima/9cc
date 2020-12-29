@@ -123,18 +123,6 @@ int main() {
 }
 "
 
-# if
-assert_exp 1  "int a; a=42;if(1)a=1;return a;"
-assert_exp 42 "int a; a=42;if(0)a=1;return a;"
-assert_exp 1  "int a; a=42;if(1)a=1;else a=2;return a;"
-assert_exp 2  "int a; a=42;if(0)a=1;else a=2;return a;"
-assert_exp 2  "int a; int b; a=42;if(1)a=1;else a=2;if(1)b=1;else b=2;return a+b;"
-assert_exp 3  "int a; int b; a=42;if(1)a=1;else a=2;if(0)b=1;else b=2;return a+b;"
-assert_exp 1  "int a; a=42;if(1)a=1;else if(1)a=2;else a=3;return a;"
-assert_exp 2  "int a; a=42;if(0)a=1;else if(1)a=2;else a=3;return a;"
-assert_exp 3  "int a; a=42;if(0)a=1;else if(0)a=2;else a=3;return a;"
-assert_exp 42  "int i; for (i = 0; i < 42; i = i + 1); return i;"
-
 # while
 assert_exp 128  "int a; a=2; while (a<100) a=a*2; return a;"
 assert_exp 15  "
