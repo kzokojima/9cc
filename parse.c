@@ -28,6 +28,8 @@ StringConstant *string_constants;
 int string_constants_index = 0;
 
 Node *expr();
+bool macro_define();
+bool macro_undef();
 bool macro_ifndef();
 
 bool in_preprocessor_directive = false;
@@ -1197,6 +1199,14 @@ Node *stmt() {
   } else if (type = parse_type()) {
     node = variable_definition(type, locals);
   } else if (consume(";")) {
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeNOP;
+    return node;
+  } else if (macro_define()) {
+    node = calloc(1, sizeof(Node));
+    node->kind = kNodeNOP;
+    return node;
+  } else if (macro_undef()) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeNOP;
     return node;

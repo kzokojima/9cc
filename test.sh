@@ -927,48 +927,6 @@ int main() {
 }
 "
 
-# マクロ(値なし)
-assert 42 "
-#define FOO
-int main() {
-  return 42;
-}
-"
-assert 42 '
-#define FOO
-int main() {
-  return FOO 42;
-}
-'
-assert 42 '
-#define FOO()
-int main() {
-  return FOO() 42;
-}
-'
-assert 42 '
-#define FOO(v)
-int main() {
-  return FOO(1) 42;
-}
-'
-
-# マクロ(#undef)
-assert_error '
-#define FOO 0
-#undef FOO
-int main() {
-  return FOO;
-}
-'
-assert 42 '
-#define FOO
-#undef FOO
-int main() {
-  return 42;
-}
-'
-
 # マクロ(#ifndef)
 assert 42 '
 #define FOO

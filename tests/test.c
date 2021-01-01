@@ -51,8 +51,23 @@ void test_if_statements(void) {
   assert(r == 42);
 }
 
+void test_empty_macro(void) {
+  #define FOO
+  assert(42 == FOO 42);
+  #undef FOO
+
+  #define FOO()
+  assert(42 == FOO() 42);
+  #undef FOO
+
+  #define FOO(v)
+  assert(42 == FOO(1) 42);
+  #undef FOO
+}
+
 int main() {
   test_assert();
   test_block_var();
   test_if_statements();
+  test_empty_macro();
 }
