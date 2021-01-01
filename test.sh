@@ -934,10 +934,22 @@ int main() {
   return 42;
 }
 "
-assert_error '
+assert 42 '
 #define FOO
 int main() {
-  return FOO;
+  return FOO 42;
+}
+'
+assert 42 '
+#define FOO()
+int main() {
+  return FOO() 42;
+}
+'
+assert 42 '
+#define FOO(v)
+int main() {
+  return FOO(1) 42;
 }
 '
 

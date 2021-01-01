@@ -18,6 +18,7 @@ struct MacroDef {
   int name_len;
   Token *tok;
   Token *end_tok;
+  int is_function_like;
   MacroParam *param;
 };
 

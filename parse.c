@@ -591,7 +591,7 @@ Node *initializer_list(int *count) {
 
 // マクロを展開する
 Token *expand_macro(Token *tok, MacroDef *macro_def) {
-  if (macro_def->param) {
+  if (macro_def->is_function_like) {
     // 関数形式マクロ
     if (! consume("(")) {
       error_at(tok->str, "マクロ形式が違います");
@@ -599,6 +599,10 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
     // パラメータをマクロとして登録
     int macro_rollback_num = 0;
     MacroParam *param = macro_def->param;
+    if (param == NULL) {
+      expect(')');
+      return tok->next->next;
+    }
     for (;param != NULL;) {
       int parenthesis_level = 0;
       macro_rollback_num++;
@@ -661,8 +665,15 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
 
     rollback_macro_def(macro_rollback_num);
 
+    if (macro_def->tok->kind == kTokenNewline) {
+      return token;
+    }
+
     return head;
   } else {
+    if (macro_def->tok->kind == kTokenNewline) {
+      return tok;
+    }
     macro_def->end_tok->next = token;
     return macro_def->tok;
   }
@@ -1295,21 +1306,25 @@ bool macro_define() {
   MacroDef *macro_def = new_macro_def(tok->str, tok->len, token);
   if (consume("(")) {
     // 関数形式マクロ
-    MacroParam *param = calloc(1, sizeof(MacroParam));
-    macro_def->param = param;
-    for (;;) {
-      tok = expect_ident();
-      param->name = tok->str;
-      param->name_len = tok->len;
-      if (!consume(",")) {
-        expect(')');
-        break;
+    macro_def->is_function_like = 1;
+    if (! consume(")")) {
+      MacroParam *param = calloc(1, sizeof(MacroParam));
+      macro_def->param = param;
+      for (;;) {
+        tok = expect_ident();
+        param->name = tok->str;
+        param->name_len = tok->len;
+        if (!consume(",")) {
+          expect(')');
+          break;
+        }
+        param->next = calloc(1, sizeof(MacroParam));
+        param = param->next;
       }
-      param->next = calloc(1, sizeof(MacroParam));
-      param = param->next;
     }
     macro_def->tok = token;
-  } else if (token->kind == kTokenNewline) {
+  }
+  if (token->kind == kTokenNewline) {
     // 値なし
     macro_def->end_tok = token;
     token = token->next;
