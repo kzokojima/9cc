@@ -7,6 +7,13 @@ assert_exp() {
 }
 
 start=$(($(date +%s%N)/1000000))
+
+set -e
+./9cc tests/test.c
+gcc -o tests/test tests/test.s fn.c
+./tests/test
+set +e
+
 assert_count=0
 
 assert() {
@@ -76,98 +83,6 @@ do { \
 mkdir -p try
 
 assert_exp 0 ""
-assert_exp 0 "return 0;"
-assert_exp 42 "return 42;"
-assert_exp 21 "return 5+20-4;"
-assert_exp 41 "return  12 + 34 - 5 ;"
-assert_exp 47 "return 5+6*7;"
-assert_exp 15 "return 5*(9-6);"
-assert_exp 4 "return (3+5)/2;"
-assert_exp 10 "return -10+20;"
-assert_exp 1 "return 1==1;"
-assert_exp 0 "return 1!=1;"
-assert_exp 1 "return 1<2;"
-assert_exp 0 "return 1<1;"
-assert_exp 1 "return 1<=2;"
-assert_exp 0 "return 1<=0;"
-assert_exp 1 "return 2>1;"
-assert_exp 0 "return 1>1;"
-assert_exp 1 "return 2>=1;"
-assert_exp 0 "return 0>=1;"
-assert_exp 1 "return 1+2*3==3*2+1;"
-assert_exp 1 "return 1+2*3!=(1+2)*3;"
-assert_exp 1 "return !0;"
-assert_exp 0 "return !1;"
-assert_exp 0 "return !2;"
-assert_exp 0 "return !!0;"
-assert_exp 1 "return !!1;"
-assert_exp 1 "return !!2;"
-assert_exp 42 "int a; a=42;return a;"
-assert_exp 63 "int a; int b; a=42;b=5+20-4;return a+b;"
-assert_exp 6 "int foo; int bar; foo = 1;bar = 2 + 3;return foo + bar;"
-assert_exp 6 "int _foo; int bar0; _foo = 1;bar0 = 2 + 3;return _foo + bar0;"
-assert_exp 27 "int _;int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;int y;int z;_=1;a=1;b=1;c=1;d=1;e=1;f=1;g=1;h=1;i=1;j=1;k=1;l=1;m=1;n=1;o=1;p=1;q=1;r=1;s=1;t=1;u=1;v=1;w=1;x=1;y=1;z=1;return _+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z;"
-assert_exp 253 "int _;int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;int y;int z;_=1;a=2;b=3;c=4;d=5;e=6;f=7;g=8;h=9;i=10;j=11;k=12;l=13;m=14;n=15;o=16;p=17;q=18;r=19;s=20;t=21;u=22;v=23;w=24;x=25;y=26;z=27;return _+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u;"
-assert_exp 250 "int a; a=1000;return a/4;"
-assert_exp 250 "int a; int b; a=1000;b=1000;return (a+b)/8;"
-# overflow
-assert_exp 20 "int _;int a;int b;int c;int d;int e;int f;int g;int h;int i;int j;int k;int l;int m;int n;int o;int p;int q;int r;int s;int t;int u;int v;int w;int x;int y;int z;_=1;a=2;b=3;c=4;d=5;e=6;f=7;g=8;h=9;i=10;j=11;k=12;l=13;m=14;n=15;o=16;p=17;q=18;r=19;s=20;t=21;u=22;v=23;w=24;x=25;y=26;z=27;return _+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v;"
-assert 0 'int main() { return (add2(3000000000, 3000000000) - 3000000000) == 3000000000; }'
-assert 1 'int main() { return (add2(1000000000, 1000000000) - 1000000000) == 1000000000; }'
-assert_exp 42 "int a; a=42;return a;0;"
-assert_output -3 "
-int main() {
-  int i1 = -12;
-  int i2 = 4;
-  print_int(i1 / i2);
-}
-"
-
-# while
-assert_exp 128  "int a; a=2; while (a<100) a=a*2; return a;"
-assert_exp 15  "
-int n;
-int i = 1;
-n = 0;
-while (1) {
-  n = n + i;
-  if (i == 5) {
-    break;
-  }
-  i = i + 1;
-}
-return n;
-"
-assert 60  "
-int fn () {
-  int n;
-  int i = 1;
-  int j = 1;
-  n = 0;
-  while (1) {
-    while (1) {
-      if (j == 5) {
-        n = n + j;
-        break;
-      }
-      j = j + 1;
-    }
-    if (i == 5) {
-      n = n + i;
-      break;
-    }
-    i = i + 1;
-  }
-  return n;
-}
-int main() {
-  int n = 0;
-  n = n + fn();
-  n = n + fn();
-
-  return n;
-}
-"
 
 # do-while
 assert 42 "
@@ -815,93 +730,10 @@ bash tests/extern/test.sh
 set +e
 
 # マクロ
-assert 42 "
-#define FOO 42
-int main() {
-  return FOO;
-}
-"
-
-assert 42 "
-#define FOO 30 + 3
-int main() {
-  return FOO * 4;
-}
-"
-
-assert 42 "
-#define FOO 12+2+2
-#define BAR FOO * FOO
-int main() {
-  return BAR;
-}
-"
-
 assert_error "
 #define FOO(v) v+v
 int main() {
   return FOO;
-}
-"
-
-assert 42 "
-#define FOO(v) v+v
-int main() {
-  return FOO(21);
-}
-"
-
-assert 42 "
-#define FOO(a, b) a+b
-int main() {
-  return FOO(40, 2);
-}
-"
-
-assert 42 "
-#define FOO(a, b) a+b
-int main() {
-  return FOO(3*7, 3*7);
-}
-"
-
-assert 42 "
-#define FOO(a, b) a*b
-int main() {
-  return FOO(12+2+2, 12+2+2);
-}
-"
-
-assert 42 "
-#define FOO(v) v+v
-int main() {
-  int v = 2;
-  return FOO(20) + v;
-}
-"
-
-assert 42 "
-#define FOO(v) v+v
-#define BAR(v) FOO(v)
-int main() {
-  int v = 2;
-  return BAR(20) + v;
-}
-"
-
-assert 42 "
-#define SWAP(x, y) \
-  do { \
-    tmp = x; \
-    x = y; \
-    y = tmp; \
-  } while (0)
-int main() {
-  int tmp;
-  int i = 0;
-  int j = 42;
-  SWAP(i, j);
-  return i;
 }
 "
 
@@ -913,13 +745,6 @@ int main() {
 }
 '
 
-assert 0 "
-$define_assert
-int main() {
-  assert(1 == (1));
-}
-"
-
 assert 134 "
 $define_assert
 int main() {
@@ -927,35 +752,8 @@ int main() {
 }
 "
 
-# マクロ(#ifndef)
-assert 42 '
-#define FOO
-int main() {
-#ifndef FOO
-  return 0;
-#endif
-  return 42;
-}
-'
-assert 42 '
-int main() {
-#ifndef FOO
-  return 42;
-#endif
-  return 0;
-}
-'
-
-# #include
-assert 42 "
-#include <stdlib.h>
-int main() {
-  return abs(-42);
-}
-"
+echo "$0: OK ($assert_count assertions)"
 
 end=$(($(date +%s%N)/1000000))
 time=$((end - start))
-echo
 echo "Time: $time ms"
-echo "OK ($assert_count assertions)"

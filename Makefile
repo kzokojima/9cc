@@ -8,9 +8,6 @@ OBJS=$(SRCS:.c=.o)
 $(OBJS): *.h
 
 test: 9cc
-	./9cc tests/test.c
-	gcc -o tests/test tests/test.s fn.c
-	./tests/test
 	./test.sh
 
 clean:
