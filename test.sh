@@ -204,6 +204,7 @@ assert 4 "int g_i; int main() { return sizeof(g_i); }"
 assert 42 "int *g_p; int main() { int i; g_p = &i; *g_p = 42; return i; }"
 assert 42 "int *g_p; int main() { int i; g_p = &i; i = 42; return *g_p; }"
 assert 42 "int g_a[10]; int main() { g_a[10] = 42; return g_a[10]; }"
+assert 42 "int g_i = 21; int main() { g_i = g_i + 21; return g_i; }"
 
 # char
 assert 42 'int main() { int i; char c; i = 42; c = 1; return i; }'

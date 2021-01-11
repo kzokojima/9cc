@@ -442,7 +442,7 @@ void gen(Node *node) {
           if (node->lhs) {
             // 初期化
             int size = get_type_size(node->lhs->lhs->type->ty);
-            emit(".text");
+            emit(".data");
             emit(".globl %1$.*2$s", node->name, node->len);
             switch (size) {
               case 1:
