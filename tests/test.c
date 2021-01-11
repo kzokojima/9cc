@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int assert_count = 0;
 #define assert(expr) \
 do { \
   if (!(expr)) { \
@@ -10,6 +11,7 @@ do { \
     fflush(0); \
     abort(); \
   } \
+  assert_count = assert_count + 1; \
 } while (0)
 
 void test_assert(void) {
@@ -243,4 +245,6 @@ int main() {
   test_define_macro();
   test_empty_macro();
   test_ifndef_macro();
+
+  printf("test.c: OK (%d assertions)\n", assert_count);
 }
