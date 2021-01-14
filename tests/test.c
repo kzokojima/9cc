@@ -109,6 +109,93 @@ void test_while(void) {
   }
 }
 
+void test_do_while(void) {
+  int max = 42;
+  int i = 0;
+  do {
+    i = i + 1;
+  } while (i < max);
+  assert(42 == i);
+}
+
+int for_1(void) {
+  int n;
+  int i;
+  int j;
+  n = 0;
+  for (i = 1; i <= 10; i = i + 1) {
+    for (j = 1; j <= 10; j = j + 1) {
+      if (j == 5) {
+        n = n + j;
+        break;
+      }
+    }
+    if (i == 5) {
+      n = n + i;
+      break;
+    }
+  }
+  return n;
+}
+void test_for(void) {
+  {
+    int n; int i; n = 0; for (i = 0; i <= 10; i = i + 1) n = n + i;
+    assert(55 == n);
+  }
+  {
+    int n;
+    int i;
+    n = 0;
+    for (i = 1; i <= 10; i = i + 1) {
+      n = n + i;
+      if (i == 5) {
+        break;
+      }
+    }
+    assert(15 == n);
+  }
+  {
+    int n = 0;
+    n = n + for_1();
+    n = n + for_1();
+    assert(60 == n);
+  }
+}
+
+void test_block(void) {
+  { ; ; assert(42 == 42); }
+  { int a; a=42; assert(42 == a); }
+  { int a; int b; a = 2; { b = 40; { assert(42 == a+b); }}}
+  { int a; int b; int c; a = 2; { b = 40; {c = 0;} { assert(42 == a+b+c); }}}
+  { int a; int b; a=0; b=0; if (1) { a=1; b=2; } else { a=2; b=4; } assert(3 == a+b); }
+  { int a; int b; a=0; b=0; if (0) { a=1; b=2; } else { a=2; b=4; } assert(6 == a+b); }
+  { int a; int b; a=2; b=3; while (a<10) { a=a*2; b=b*2; } assert(40 == a+b); }
+  { int a; int b; int n; int i; n = 0; for (i = 1; i <= 10; i = i + 1) { n = n + i; a = i; } assert(65 == n+a); }
+}
+
+int fn_1() { return 42; }
+int fn_2() { int a; a=42; return a; }
+int fn_3() { int a; a=add2(2, add2(add2(10, 10), add2(10, 10))); return a; }
+int fn_4(int x) { return x; }
+int fn_5(int x, int y) {if (x + y <= 100) return fn_5(y, x + y); return x; }
+void test_function(void) {
+  { foo(); assert(0 == 0); }
+  { int a; a=foo(); assert(42 == a); }
+  { int a; a=add2(2, 40); assert(42 == a); }
+  { int a; a=add2(1 + 1, 40); assert(42 == a); }
+  { int a; a=add2(1 + 1, 2 * 20); assert(42 == a); }
+  { int a; a=add6(1, 2, 3, 4, 5, 6); assert(21 == a); }
+  { int a; a=add2(2, add2(20, 20)); assert(42 == a); }
+  { int a; a=add2(2, add2(add2(10, 10), 20)); assert(42 == a); }
+  { int a; a=add2(2, add2(add2(10, 10), add2(10, 10))); assert(42 == a); }
+
+  assert(42 == fn_1());
+  assert(42 == fn_2());
+  assert(42 == fn_3());
+  assert(42 == fn_4(42));
+  assert(55 == fn_5(1, 2));
+}
+
 void test_block_var(void) {
   int r = 0;
   {
@@ -240,6 +327,10 @@ int main() {
   test_assert();
   test_basic();
   test_while();
+  test_do_while();
+  test_for();
+  test_block();
+  test_function();
   test_block_var();
   test_if_statements();
   test_define_macro();
