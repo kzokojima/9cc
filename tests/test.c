@@ -196,6 +196,23 @@ void test_function(void) {
   assert(55 == fn_5(1, 2));
 }
 
+int *g_p;
+void pointer_1 (int *p) { *p = 42; }
+void test_pointer(void) {
+  // int
+  { int i; int *p; i = 42; p = &i; assert(42 == *p); }
+  { int i; int *p; p = &i; *p = 42; assert(42 == i); }
+  { int i; int *p; p = &i; pointer_1(p); assert(42 == i); }
+
+  // short
+  { short s; short *ps; s = 42; ps = &s; assert(42 == *ps); }
+  { short s; short *ps; ps = &s; *ps = 42; assert(42 == s); }
+
+  // global
+  { int i; g_p = &i; *g_p = 42; assert(42 == i); }
+  { int i; g_p = &i; i = 42; assert(42 == *g_p); }
+}
+
 void test_block_var(void) {
   int r = 0;
   {
@@ -331,6 +348,7 @@ int main() {
   test_for();
   test_block();
   test_function();
+  test_pointer();
   test_block_var();
   test_if_statements();
   test_define_macro();

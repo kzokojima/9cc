@@ -87,11 +87,6 @@ assert_exp 0 ""
 # function
 assert_output 1 'int main() {print_int(1);}'
 
-# pointer
-assert 42 'int main() { int i; int *p; i = 42; p = &i; return *p; }'
-assert 42 'int main() { int i; int *p; p = &i; *p = 42; return i; }'
-assert 42 'int main() { int i; int *p; p = &i; fn(p); return i; } int fn (int *p) { *p = 42; }'
-
 # sizeof
 assert 4 'int main() { int i; return sizeof(i); }'
 assert 4 'int main() { int i; return sizeof(i + 1); }'
@@ -121,8 +116,6 @@ assert 42 "int g_i; int main() { g_i = 42; return g_i; }"
 assert 42 "int g_i; int main() { g_i = 42; return fn(g_i); } int fn(int a) { return a; }"
 assert 42 "int g_i; int main() { int *p; p = &g_i; *p = 42; return g_i; }"
 assert 4 "int g_i; int main() { return sizeof(g_i); }"
-assert 42 "int *g_p; int main() { int i; g_p = &i; *g_p = 42; return i; }"
-assert 42 "int *g_p; int main() { int i; g_p = &i; i = 42; return *g_p; }"
 assert 42 "int g_a[10]; int main() { g_a[10] = 42; return g_a[10]; }"
 assert 42 "int g_i = 21; int main() { g_i = g_i + 21; return g_i; }"
 

@@ -57,6 +57,25 @@ void gen_val(Node *node) {
   }
 }
 
+void gen_load(Type *type) {
+  if (get_type_size(type->ty) == 8)
+    emit("  mov rax, [rax]");
+  else if (type->ty == kTypeInt)
+    emit("  movsx rax, DWORD PTR [rax]");
+  else if (type->ty == kTypeUInt)
+    emit("  mov eax, [rax]");
+  else if (type->ty == kTypeLLong)
+    emit("  mov rax, [rax]");
+  else if (type->ty == kTypeULLong)
+    emit("  mov rax, [rax]");
+  else if (type->ty == kTypeShort)
+    emit("  movsx rax, WORD PTR [rax]");
+  else if (type->ty == kTypeUShort)
+    emit("  movzx rax, WORD PTR [rax]");
+  else
+    emit("  movsx eax, BYTE PTR [rax]");
+}
+
 void gen(Node *node) {
   static int s_lavel_no = 1;
   static int s_in_function = 0;
@@ -84,22 +103,7 @@ void gen(Node *node) {
       if (node->type->ty == kTypeArray) {
         // do nothing
       } else {
-        if (get_type_size(node->type->ty) == 8)
-          emit("  mov rax, [rax]");
-        else if (node->type->ty == kTypeInt)
-          emit("  movsx rax, DWORD PTR [rax]");
-        else if (node->type->ty == kTypeUInt)
-          emit("  mov eax, [rax]");
-        else if (node->type->ty == kTypeLLong)
-          emit("  mov rax, [rax]");
-        else if (node->type->ty == kTypeULLong)
-          emit("  mov rax, [rax]");
-        else if (node->type->ty == kTypeShort)
-          emit("  movsx rax, WORD PTR [rax]");
-        else if (node->type->ty == kTypeUShort)
-          emit("  movzx rax, WORD PTR [rax]");
-        else
-          emit("  movsx eax, BYTE PTR [rax]");
+        gen_load(node->type);
       }
       emit("  push rax");
       return;
@@ -338,7 +342,11 @@ void gen(Node *node) {
     case kNodeDeref:
       gen(node->lhs);
       emit("  pop rax");
-      emit("  mov rax, [rax]");
+      if (node->lhs->kind == kNodeLocalVar || node->lhs->kind == kNodeGlobalVar) {
+        gen_load(node->lhs->type->ptr_to);
+      } else {
+        emit("  mov rax, [rax]");
+      }
       emit("  push rax");
       return;
     case kNodeLogicalNot:
