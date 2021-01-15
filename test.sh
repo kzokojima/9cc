@@ -84,19 +84,6 @@ mkdir -p try
 
 assert_exp 0 ""
 
-# function
-assert_output 1 'int main() {print_int(1);}'
-
-# sizeof
-assert 4 'int main() { int i; return sizeof(i); }'
-assert 4 'int main() { int i; return sizeof(i + 1); }'
-assert 8 'int main() { int *p; return sizeof(p); }'
-assert 8 'int main() { int *p; return sizeof(p + 1); }'
-assert 4 'int main() { int *p; return sizeof(*p); }'
-assert 4 'int main() { return sizeof(1); }'
-assert 4 'int main() { return sizeof(1 + 1); }'
-assert 8 'int main() { return sizeof(sizeof(1)); }'
-
 # array
 assert 3 'int main() {
   int a[2];

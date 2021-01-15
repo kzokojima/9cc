@@ -213,6 +213,19 @@ void test_pointer(void) {
   { int i; g_p = &i; i = 42; assert(42 == *g_p); }
 }
 
+void test_sizeof(void) {
+  int i;
+  int *p;
+  assert(4 == sizeof(i));
+  assert(4 == sizeof(i + 1));
+  assert(8 == sizeof(p));
+  assert(8 == sizeof(p + 1));
+  assert(4 == sizeof(*p));
+  assert(4 == sizeof(1));
+  assert(4 == sizeof(1 + 1));
+  assert(8 == sizeof(sizeof(1)));
+}
+
 void test_block_var(void) {
   int r = 0;
   {
@@ -349,6 +362,7 @@ int main() {
   test_block();
   test_function();
   test_pointer();
+  test_sizeof();
   test_block_var();
   test_if_statements();
   test_define_macro();
