@@ -651,7 +651,8 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
         cur = cur->next;
         MacroDef *macro_def = find_macro_def(cur->str, cur->len, macro_rollback_num);
         if (macro_def) {
-          Token *tok = new_token(kTokenString, NULL, macro_def->tok->str, macro_def->end_tok->str + macro_def->end_tok->len - macro_def->tok->str);
+          char *s = strescape(macro_def->tok->str, macro_def->end_tok->str + macro_def->end_tok->len - macro_def->tok->str);
+          Token *tok = new_token(kTokenString, NULL, s, strlen(s));
           tok->next = cur->next;
           if (prev) {
             prev->next = tok;

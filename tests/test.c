@@ -243,6 +243,40 @@ void test_array(void) {
   { int a[10]; a[3] = 42; assert(42 == a[3]); }
 }
 
+int g_i;
+int g_a[10];
+int g_i2 = 21;
+int global_variable(int a) { return a; }
+void test_global_variable(void) {
+  { g_i = 42; assert(42 == g_i); }
+  { g_i = 42; assert(42 == global_variable(g_i)); }
+  { int *p; p = &g_i; *p = 42; assert(42 == g_i); }
+  { assert(4 == sizeof(g_i)); }
+  { g_a[10] = 42; assert(42 == g_a[10]); }
+  { g_i2 = g_i2 + 21; assert(42 == g_i2); }
+}
+
+int char1(char a[2]) { return *(a + 1); }
+void test_char(void) {
+  { int i; char c; i = 42; c = 1; assert(42 == i); }
+  { char *p; char c; p = &c; c = 42; assert(42 == *p); }
+  { char *p; char c; p = &c; *p = 42; assert(42 == c); }
+  { char c; assert(1 == sizeof(c)); }
+  { char c; assert(4 == sizeof(c + 1)); }
+  { char *p; assert(8 == sizeof(p)); }
+  { char *p; assert(8 == sizeof(p + 1)); }
+  { char *p; assert(1 == sizeof(*p)); }
+  { char a[2]; *(a + 1) = 2; assert(2 == char1(a)); }
+}
+
+void test_string(void) {
+  { char *p; p = "hello, world"; assert(104 == *p); }
+  { char *p; p = "hello, world"; assert(101 == *(p + 1)); }
+  { assert(12 == printf("hello, world")); }
+  { char *p; p = "hello, world"; assert(12 == printf(p)); }
+  assert(15 == strlen("\"hello, world\\\""));
+}
+
 void test_block_var(void) {
   int r = 0;
   {
@@ -381,6 +415,9 @@ int main() {
   test_pointer();
   test_sizeof();
   test_array();
+  test_global_variable();
+  test_char();
+  test_string();
   test_block_var();
   test_if_statements();
   test_define_macro();

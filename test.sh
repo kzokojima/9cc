@@ -84,32 +84,6 @@ mkdir -p try
 
 assert_exp 0 ""
 
-# global variable
-assert 42 "int g_i; int main() { g_i = 42; return g_i; }"
-assert 42 "int g_i; int main() { g_i = 42; return fn(g_i); } int fn(int a) { return a; }"
-assert 42 "int g_i; int main() { int *p; p = &g_i; *p = 42; return g_i; }"
-assert 4 "int g_i; int main() { return sizeof(g_i); }"
-assert 42 "int g_a[10]; int main() { g_a[10] = 42; return g_a[10]; }"
-assert 42 "int g_i = 21; int main() { g_i = g_i + 21; return g_i; }"
-
-# char
-assert 42 'int main() { int i; char c; i = 42; c = 1; return i; }'
-assert 42 'int main() { char *p; char c; p = &c; c = 42; return *p; }'
-assert 42 'int main() { char *p; char c; p = &c; *p = 42; return c; }'
-assert 1 'int main() { char c; return sizeof(c); }'
-assert 4 'int main() { char c; return sizeof(c + 1); }'
-assert 8 'int main() { char *p; return sizeof(p); }'
-assert 8 'int main() { char *p; return sizeof(p + 1); }'
-assert 1 'int main() { char *p; return sizeof(*p); }'
-assert 2 "int main() { char a[2]; *(a + 1) = 2; return fn(a); } int fn(char a[2]) { return *(a + 1); }"
-
-# string
-assert 104 'int main() { char *p; p = "hello, world"; return *p; }'
-assert 101 'int main() { char *p; p = "hello, world"; return *(p + 1); }'
-assert 12 'int main() { return printf("hello, world"); }'
-assert 12 'int main() { char *p; p = "hello, world"; return printf(p); }'
-assert_output '"hello, world\"' 'int main() { print_str("\"hello, world\\\""); }'
-
 # comment
 assert 42 'int main() {
   // ...

@@ -15,5 +15,6 @@ void error_at(char *loc, char *fmt, ...);
 char *read_file(char *filename, int buffer_size);
 unsigned long long mystrtoull(const char *str, char **str_end);
 int strcount(char *str, char *end, char c);
+char *strescape(char *src, int src_len);
 
 #endif  // NINECC_LIB_H_

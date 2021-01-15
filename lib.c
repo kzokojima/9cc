@@ -128,3 +128,21 @@ int strcount(char *str, char *end, char c) {
   }
   return no;
 }
+
+char *strescape(char *src, int src_len) {
+  int cnt = strcount(src, src + src_len, '\"');
+  cnt += strcount(src, src + src_len, '\\');
+  char *dst = calloc(1, cnt + src_len + 1);
+  int src_index = 0;
+  int dst_index = 0;
+  while (src_index < src_len) {
+    if (src[src_index] == '\"' || src[src_index] == '\\') {
+      dst[dst_index] = '\\';
+      dst_index++;
+    }
+    dst[dst_index] = src[src_index];
+    src_index++;
+    dst_index++;
+  }
+  return dst;
+}
