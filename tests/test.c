@@ -226,6 +226,23 @@ void test_sizeof(void) {
   assert(8 == sizeof(sizeof(1)));
 }
 
+int array_1(int a[10]) { return sizeof(a); }
+int array_2(int a[10]) { return *(a + 1); }
+void test_array(void) {
+  {
+    int a[2];
+    *a = 1;
+    *(a + 1) = 2;
+    int *p;
+    p = a;
+    assert(3 == *p + *(p + 1));
+  }
+  { int a[10]; assert(40 == sizeof(a)); }
+  { int a[10]; assert(8 == array_1(a)); }
+  { int a[10]; *(a + 1) = 2; assert(2 == array_2(a)); }
+  { int a[10]; a[3] = 42; assert(42 == a[3]); }
+}
+
 void test_block_var(void) {
   int r = 0;
   {
@@ -363,6 +380,7 @@ int main() {
   test_function();
   test_pointer();
   test_sizeof();
+  test_array();
   test_block_var();
   test_if_statements();
   test_define_macro();

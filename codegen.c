@@ -114,11 +114,12 @@ void gen(Node *node) {
           if (node->lhs->lhs->type->ty == kTypeArray) {
             // *array = ...;
             gen_val(node->lhs->lhs);
+            type = node->lhs->lhs->type->ptr_to;
           } else {
             // *pointer = ...;
             gen(node->lhs->lhs);
+            type = node->lhs->lhs->type;
           }
-          type = node->lhs->lhs->type;
         } else if (node->lhs->lhs->kind == kNodeAdd) {
           // *(array + 1) = ...;
           gen_val(node->lhs->lhs->lhs);
@@ -339,16 +340,23 @@ void gen(Node *node) {
     case kNodeAddr:
       gen_val(node->lhs);
       return;
-    case kNodeDeref:
+    case kNodeDeref: {
+      Node *var_node;
       gen(node->lhs);
       emit("  pop rax");
-      if (node->lhs->kind == kNodeLocalVar || node->lhs->kind == kNodeGlobalVar) {
-        gen_load(node->lhs->type->ptr_to);
+      if (node->lhs->kind == kNodeAdd) {
+        var_node = node->lhs->lhs;
+      } else {
+        var_node = node->lhs;
+      }
+      if (var_node->kind == kNodeLocalVar || var_node->kind == kNodeGlobalVar) {
+        gen_load(var_node->type->ptr_to);
       } else {
         emit("  mov rax, [rax]");
       }
       emit("  push rax");
       return;
+    }
     case kNodeLogicalNot:
       gen(node->lhs);
       emit("  xor rax, rax");

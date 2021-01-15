@@ -84,20 +84,6 @@ mkdir -p try
 
 assert_exp 0 ""
 
-# array
-assert 3 'int main() {
-  int a[2];
-  *a = 1;
-  *(a + 1) = 2;
-  int *p;
-  p = a;
-  return *p + *(p + 1);
-}'
-assert 40 'int main() { int a[10]; return sizeof(a); }'
-assert 8 "int main() { int a[10]; return fn(a); } int fn(int a[10]) { return sizeof(a); }"
-assert 2 "int main() { int a[10]; *(a + 1) = 2; return fn(a); } int fn(int a[10]) { return *(a + 1); }"
-assert 42 "int main() { int a[10]; a[3] = 42; return a[3]; }"
-
 # global variable
 assert 42 "int g_i; int main() { g_i = 42; return g_i; }"
 assert 42 "int g_i; int main() { g_i = 42; return fn(g_i); } int fn(int a) { return a; }"
