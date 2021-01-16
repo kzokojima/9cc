@@ -62,6 +62,28 @@ void test_basic(void) {
   // overflow
   assert((add2(3000000000, 3000000000) - 3000000000) != 3000000000);
   assert((add2(1000000000, 1000000000) - 1000000000) == 1000000000);
+
+  // assignment operators
+  {
+    int i = 1;
+    i += 2;
+    assert(3 == i);
+  }
+  {
+    int i = 1;
+    i -= 2;
+    assert(-1 == i);
+  }
+  {
+    int i = 1;
+    i *= 1 + 1;
+    assert(2 == i);
+  }
+  {
+    int i = 1;
+    i /= 1 + 1;
+    assert(0 == i);
+  }
 }
 
 int while_1 () {

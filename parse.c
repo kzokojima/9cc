@@ -310,7 +310,9 @@ Token *tokenize() {
     }
 
     if (!memcmp(p, "==", 2) || !memcmp(p, "!=", 2) || !memcmp(p, "<=", 2) ||
-        !memcmp(p, ">=", 2) || !memcmp(p, "||", 2) || !memcmp(p, "&&", 2)) {
+        !memcmp(p, ">=", 2) || !memcmp(p, "||", 2) || !memcmp(p, "&&", 2) ||
+        !memcmp(p, "+=", 2) || !memcmp(p, "-=", 2) || !memcmp(p, "*=", 2) ||
+        !memcmp(p, "/=", 2)) {
       cur = new_token(kTokenReserved, cur, p, 2);
       p += 2;
       continue;
@@ -936,7 +938,17 @@ Node *ternary_conditional() {
 
 Node *assign() {
   Node *node = ternary_conditional();
-  if (consume("=")) node = new_node(kNodeAssign, node, assign());
+  if (consume("=")) {
+    node = new_node(kNodeAssign, node, assign());
+  } else if (consume("+=")) {
+    node = new_node(kNodeAssign, node, new_node(kNodeAdd, node, assign()));
+  } else if (consume("-=")) {
+    node = new_node(kNodeAssign, node, new_node(kNodeSub, node, assign()));
+  } else if (consume("*=")) {
+    node = new_node(kNodeAssign, node, new_node(kNodeMul, node, assign()));
+  } else if (consume("/=")) {
+    node = new_node(kNodeAssign, node, new_node(kNodeDiv, node, assign()));
+  }
   return node;
 }
 
