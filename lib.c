@@ -132,11 +132,13 @@ int strcount(char *str, char *end, char c) {
 char *strescape(char *src, int src_len) {
   int cnt = strcount(src, src + src_len, '\"');
   cnt += strcount(src, src + src_len, '\\');
+  cnt += strcount(src, src + src_len, '\n');
   char *dst = calloc(1, cnt + src_len + 1);
   int src_index = 0;
   int dst_index = 0;
   while (src_index < src_len) {
-    if (src[src_index] == '\"' || src[src_index] == '\\') {
+    if (src[src_index] == '\"' || src[src_index] == '\\' ||
+        src[src_index] == '\n') {
       dst[dst_index] = '\\';
       dst_index++;
     }
