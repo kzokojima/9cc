@@ -1,3 +1,6 @@
+/*
+test.c
+*/
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -277,6 +280,249 @@ void test_string(void) {
   assert(15 == strlen("\"hello, world\\\""));
 }
 
+int initialization_i = 42;
+int initialization_a[] = { 1,2,3,42 };
+char initialization_a2[] = "hello, world";
+char *initialization_p = "hello, world";
+int initialization_i2 = 42; int *initialization_p2 = &initialization_i2;
+void test_initialization(void) {
+  { int i = 42; assert(42 == i); }
+  { int i = 40 + 2; assert(42 == i); }
+  { int i = add2(40, 2); assert(42 == i); }
+  { char *p = "hello, world"; assert(104 == *p); }
+  { int a[] = { 1,2,3,42 }; assert(42 == *(a + 3)); }
+  { char a[] = "hello, world"; assert(104 == *a); }
+  assert(42 == initialization_i);
+  assert(42 == *(initialization_a + 3));
+  assert(104 == *initialization_a2);
+  assert(104 == *initialization_p);
+  assert(42 == *initialization_p2);
+  {
+    int i = 1000000000; // 1 billion
+    assert(1000000000 == i);
+  }
+  {
+    int a[] = { 1000000000 }; // 1 billion
+    assert(1000000000 == a[0]);
+  }
+}
+
+char char_literal_c = 'h';
+void test_char_literal(void) {
+  { char c = 'h'; assert(104 == c); }
+  { assert(104 == char_literal_c); }
+  { assert(4 == sizeof('h')); }
+}
+
+void test_unsigned(void) {
+  {
+    unsigned u1 = 4000000000; // 4 billion
+    assert(4000000000 == u1);
+  }
+  {
+    unsigned u1 = 2000000000; // 2 billion
+    unsigned u2 = 2000000000; // 2 billion
+    assert(4000000000 == u1 + u2);
+  }
+  {
+    unsigned u1 = 2000000000; // 2 billion
+    unsigned u2 = 2000000000; // 2 billion
+    assert(0 == u1 - u2);
+  }
+  {
+    unsigned u1 = 2000000000; // 2 billion
+    assert(4000000000 == u1 * 2);
+  }
+  {
+    unsigned u1 = 3000000000; // 3 billion
+    assert(1000000000 == u1 / 3);
+  }
+}
+
+void test_long_long(void) {
+  {
+    long long ll = 9223372036854775807; // 0x7FFFFFFFFFFFFFFF
+    assert(9223372036854775807 == ll);
+  }
+  {
+    long long ll = -9223372036854775806; // 0xFFFFFFFFFFFFFFFF
+    assert(-9223372036854775806 == ll);
+  }
+  {
+    unsigned long long ull = 18446744073709551615; // 0xFFFFFFFFFFFFFFFF
+    assert(18446744073709551615 == ull);
+  }
+  {
+    unsigned long long ull1 = 9223372036854775807;
+    unsigned long long ull2 = 9223372036854775807;
+    assert(18446744073709551614 == ull1 + ull2);
+  }
+  {
+    long long ll = 0777777777777777777777;
+    assert(9223372036854775807 == ll);
+  }
+  {
+    long long ll = 0x7FFFFFFFFFFFFFFF;
+    assert(9223372036854775807 == ll);
+  }
+}
+
+void test_short(void) {
+  {
+    short n1;
+    n1 = -12;
+    short n2 = 4;
+    assert(-8 == n1 + n2);
+  }
+  {
+    unsigned short n1;
+    n1 = 30000;
+    unsigned short n2 = 30000;
+    assert(60000 == n1 + n2);
+  }
+  {
+    unsigned short n1;
+    n1 = 60000;
+    assert(60000 == n1);
+  }
+  {
+    unsigned short n1 = 60000;
+    assert(60000 == n1);
+  }
+}
+
+void test_binary(void) {
+  assert(0 == 0b0);
+  assert(0 == 0b00000000);
+  assert(1 == 0b1);
+  assert(1 == 0b01);
+  assert(2 == 0b10);
+  assert(3 == 0b11);
+  assert(170 == 0b10101010);
+}
+
+void test_escape_sequences(void) {
+  assert(0 == '\0');
+  assert(10 == '\n');
+  assert(13 == '\r');
+}
+
+void test_void(void) {
+  void *vp;
+  int *ip;
+  int i = 1;
+  vp = &i;
+  ip = vp;
+  assert(1 == *ip);
+}
+
+void test_switch(void) {
+  switch (1) {
+  case 0:
+    assert(0);
+    break;
+  case 1:
+    assert(1);
+    break;
+  case 2:
+    assert(0);
+    break;
+  }
+  {
+    int n = 0;
+    switch (n + 1) {
+    case 0:
+      n = 10;
+      break;
+    case 1:
+      n = 11;
+      break;
+    case 2:
+      n = 12;
+      break;
+    }
+    assert(11 == n);
+  }
+  {
+    int n = 0;
+    switch (n + 1) {
+    case 0:
+      n = n + 1;
+      n = n + 1;
+    case 1:
+      n = n + 1;
+      n = n + 1;
+    case 2:
+      n = n + 1;
+      n = n + 1;
+    }
+    assert(4 == n);
+  }
+  {
+    int n = 0;
+    switch (n + 1) {
+    case 0:
+      n = n + 1;
+      n = n + 1;
+    case 1:
+      n = n + 1;
+      n = n + 1;
+    case 2:
+      n = n + 1;
+      n = n + 1;
+    default:
+      n = n + 1;
+      n = n + 1;
+    }
+    assert(6 == n);
+  }
+}
+
+void test_logical_or_and(void) {
+  assert(0 == (0 || 0));
+  assert(1 == (0 || 1));
+  assert(1 == (1 || 0));
+  assert(1 == (1 || 1));
+  assert(1 == (0 || 2));
+  assert(1 == (2 || 0));
+  assert(1 == (2 || 2));
+  assert(0 == (0 && 0));
+  assert(0 == (0 && 1));
+  assert(0 == (1 && 0));
+  assert(1 == (1 && 1));
+  assert(0 == (0 && 2));
+  assert(0 == (2 && 0));
+  assert(1 == (2 && 2));
+  assert(1 == (0 == 0 || 0 == 1));
+  assert(0 == (0 == 1 || 0 == 1));
+  assert(1 == (0 == 0 || 0 == 0 && 0 == 0));
+  assert(1 == (0 == 0 || 0 == 1 && 0 == 0));
+  assert(1 == (0 == 0 || 0 == 1 && 0 == 1));
+  assert(0 == (0 == 1 || 0 == 1 && 0 == 0));
+  assert(0 == (0 == 1 || 0 == 1 && 0 == 1));
+  assert(0 == (0 == 0 && 0 == 1));
+  assert(0 == (0 == 1 && 0 == 1));
+  assert(1 == (0 == 0 && 0 == 0 && 0 == 0));
+  assert(0 == (0 == 0 && 0 == 1 && 0 == 0));
+  assert(0 == (0 == 0 && 0 == 1 && 0 == 1));
+  assert(0 == (0 == 1 && 0 == 1 && 0 == 0));
+  assert(0 == (0 == 1 && 0 == 1 && 0 == 1));
+}
+
+void test_ternary_conditional(void) {
+  assert(0 == (0 == 0 ? 0 : 1));
+  assert(1 == (0 == 1 ? 0 : 1));
+  assert(0 == (0 == 0 ? 0 == 0 ? 0 : 1 : 2));
+  assert(1 == (0 == 0 ? 0 == 1 ? 0 : 1 : 2));
+  assert(2 == (0 == 1 ? 0 == 0 ? 0 : 1 : 2));
+  assert(2 == (0 == 1 ? 0 == 1 ? 0 : 1 : 2));
+  assert(2 == (0 ? 0 : 1 ? 2 : 3));
+  assert(0 == (1 ? 0 : 1 ? 2 : 3));
+  assert(2 == ((0 ? 0 : 1) ? 2 : 3));
+  assert(3 == ((1 ? 0 : 1) ? 2 : 3));
+  assert(4 == (1 ? 2 ? 3 ? 4 : 5 : 6 : 7));
+}
+
 void test_block_var(void) {
   int r = 0;
   {
@@ -418,6 +664,17 @@ int main() {
   test_global_variable();
   test_char();
   test_string();
+  test_initialization();
+  test_char_literal();
+  test_unsigned();
+  test_long_long();
+  test_short();
+  test_binary();
+  test_escape_sequences();
+  test_void();
+  test_switch();
+  test_logical_or_and();
+  test_ternary_conditional();
   test_block_var();
   test_if_statements();
   test_define_macro();
