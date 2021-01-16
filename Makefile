@@ -14,7 +14,7 @@ clean:
 	rm -f 9cc *.o *~ try/tmp* tests/*.s tests/*.s tests/test tests/*/*.s tests/*/test
 
 format:
-	clang-format -i -style="{BasedOnStyle: Google}" *.c *.h
+	find . -type f -iname '*.[ch]' | xargs clang-format -i -style="{BasedOnStyle: Google}"
 
 bash:
 	docker build -t compilerbook .

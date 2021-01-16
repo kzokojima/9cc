@@ -1,6 +1,4 @@
-int foo2() {
-  return 0;
-}
+int foo2() { return 0; }
 int main(void) {
   foo();
   foo2();

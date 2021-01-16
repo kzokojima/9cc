@@ -1,5 +1,3 @@
 #include "header.h"
 
-int main(void) {
-  return FOO;
-}
+int main(void) { return FOO; }
