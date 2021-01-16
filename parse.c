@@ -81,7 +81,7 @@ LVar *find_var(Token *tok, VarTable *var_table) {
 }
 
 LVar *find_var_recursive(Token *tok, VarTable *var_table) {
-  if (! var_table) {
+  if (!var_table) {
     return NULL;
   }
   LVar *var = find_var(tok, var_table);
@@ -595,7 +595,7 @@ Node *initializer_list(int *count) {
 Token *expand_macro(Token *tok, MacroDef *macro_def) {
   if (macro_def->is_function_like) {
     // 関数形式マクロ
-    if (! consume("(")) {
+    if (!consume("(")) {
       error_at(tok->str, "マクロ形式が違います");
     }
     // パラメータをマクロとして登録
@@ -605,7 +605,7 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
       expect(')');
       return tok->next->next;
     }
-    for (;param != NULL;) {
+    for (; param != NULL;) {
       int parenthesis_level = 0;
       macro_rollback_num++;
       MacroDef *macro_def = new_macro_def(param->name, param->name_len, token);
@@ -637,9 +637,11 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
     Token *cur = head, *prev = NULL;
     for (; cur != token; cur = cur->next) {
       if (cur->kind == kTokenIdent) {
-        MacroDef *macro_def = find_macro_def(cur->str, cur->len, macro_rollback_num);
+        MacroDef *macro_def =
+            find_macro_def(cur->str, cur->len, macro_rollback_num);
         if (macro_def) {
-          Token *copy = copy_tokens(macro_def->tok, macro_def->end_tok, cur->next);
+          Token *copy =
+              copy_tokens(macro_def->tok, macro_def->end_tok, cur->next);
           if (prev) {
             prev->next = copy;
           } else {
@@ -649,9 +651,12 @@ Token *expand_macro(Token *tok, MacroDef *macro_def) {
       } else if (cur->kind == kTokenReserved && !strncmp(cur->str, "#", 1)) {
         // # operator
         cur = cur->next;
-        MacroDef *macro_def = find_macro_def(cur->str, cur->len, macro_rollback_num);
+        MacroDef *macro_def =
+            find_macro_def(cur->str, cur->len, macro_rollback_num);
         if (macro_def) {
-          char *s = strescape(macro_def->tok->str, macro_def->end_tok->str + macro_def->end_tok->len - macro_def->tok->str);
+          char *s = strescape(macro_def->tok->str, macro_def->end_tok->str +
+                                                       macro_def->end_tok->len -
+                                                       macro_def->tok->str);
           Token *tok = new_token(kTokenString, NULL, s, strlen(s));
           tok->next = cur->next;
           if (prev) {
@@ -935,9 +940,7 @@ Node *assign() {
   return node;
 }
 
-Node *expr() {
-  return assign();
-}
+Node *expr() { return assign(); }
 
 // データ型
 Type *parse_type() {
@@ -1030,8 +1033,8 @@ Node *variable_definition(Type *type, VarTable *var_table) {
       type->array_size = 0;
     type->ptr_to = lvar->type;
     if (var_table != globals)
-      lvar->offset = locals_offset +
-                     type->array_size * get_type_size_by_type(lvar->type);
+      lvar->offset =
+          locals_offset + type->array_size * get_type_size_by_type(lvar->type);
     lvar->type = type;
     expect(']');
   }
@@ -1113,7 +1116,8 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeDoWhile;
     node->rhs = stmt();
-    if (!consume_token(kTokenWhile)) error_at(token->str, "'while'ではありません");
+    if (!consume_token(kTokenWhile))
+      error_at(token->str, "'while'ではありません");
     if (!consume("(")) error_at(token->str, "'('ではありません");
     node->lhs = expr();
     if (!consume(")")) error_at(token->str, "')'ではありません");
@@ -1211,11 +1215,11 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeNOP;
     return node;
-  } else if(macro_ifndef()) {
+  } else if (macro_ifndef()) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeNOP;
     return node;
-  } else if(consume_token(kTokenMacroEndif)) {
+  } else if (consume_token(kTokenMacroEndif)) {
     node = calloc(1, sizeof(Node));
     node->kind = kNodeNOP;
     return node;
@@ -1318,7 +1322,7 @@ bool macro_define() {
   if (consume("(")) {
     // 関数形式マクロ
     macro_def->is_function_like = 1;
-    if (! consume(")")) {
+    if (!consume(")")) {
       MacroParam *param = calloc(1, sizeof(MacroParam));
       macro_def->param = param;
       for (;;) {
@@ -1462,10 +1466,10 @@ Node *global_definition() {
     Node *block_node = calloc(1, sizeof(Node));
     Node *current;
     block_node->kind = kNodeBlock;
-    if (! consume("}")) {
+    if (!consume("}")) {
       block_node->lhs = stmt();
       current = block_node->lhs;
-      while (! consume("}")) {
+      while (!consume("}")) {
         current->next = stmt();
         current = current->next;
       }

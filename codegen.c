@@ -290,7 +290,8 @@ void gen(Node *node) {
       }
       char *plt = "@PLT";
       for (i = 0; code[i]; i++) {
-        if (code[i]->kind == kNodeFunc && !strncmp(code[i]->name, node->name, node->len)) {
+        if (code[i]->kind == kNodeFunc &&
+            !strncmp(code[i]->name, node->name, node->len)) {
           plt = "";
         }
       }
@@ -429,7 +430,8 @@ void gen(Node *node) {
             }
           } else if (!node->is_extern) {
             is_bss = 1;
-            bss_size = get_type_size(node->type->ptr_to->ty) * node->type->array_size;
+            bss_size =
+                get_type_size(node->type->ptr_to->ty) * node->type->array_size;
           }
         } else if (node->type->ty == kTypePtr) {
           if (node->lhs) {
