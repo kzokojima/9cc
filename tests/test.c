@@ -1171,6 +1171,13 @@ void test_ifndef_macro(void) {
 #endif
 }
 
+typedef long test_typedef_l;
+void test_typedef(void) {
+  test_typedef_l l;
+  l = 4000000000;  // 4 billion
+  assert(4000000000 == l);
+}
+
 int main() {
   test_assert();
   test_basic();
@@ -1201,6 +1208,7 @@ int main() {
   test_define_macro();
   test_empty_macro();
   test_ifndef_macro();
+  test_typedef();
 
   printf("test.c: OK (%d assertions)\n", assert_count);
 }

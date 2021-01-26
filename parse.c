@@ -1002,7 +1002,7 @@ Type *parse_type() {
         type->name = typedef_def->type_name;
         type->name_len = typedef_def->type_name_len;
       } else {
-        type->ty = kTypeInt;
+        type->ty = typedef_def->ty;
       }
     } else {
       return NULL;
@@ -1303,6 +1303,7 @@ bool typedef_definition() {
   if (!consume_token(kTokenTypedef)) {
     return false;
   }
+  Type *type;
   if (!enum_definition()) {
     if (consume_token(kTokenStruct)) {
       Token *tag_tok = expect_ident();
@@ -1311,6 +1312,11 @@ bool typedef_definition() {
       typedef_def->ty = kTypeStruct;
       typedef_def->type_name = tag_tok->str;
       typedef_def->type_name_len = tag_tok->len;
+      return true;
+    } else if (type = parse_type()) {
+      Token *tok = expect_ident();
+      TypedefDef *typedef_def = new_typedef_def(tok->str, tok->len);
+      typedef_def->ty = type->ty;
       return true;
     } else {
       error("typedef定義エラーです");
