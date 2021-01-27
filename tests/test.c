@@ -1176,6 +1176,11 @@ void test_typedef(void) {
   test_typedef_l l;
   l = 4000000000;  // 4 billion
   assert(4000000000 == l);
+
+  // same name
+  test_typedef_l test_typedef_l;
+  test_typedef_l = 42;
+  assert(42 == test_typedef_l);
 }
 
 int main() {

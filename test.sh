@@ -84,6 +84,16 @@ mkdir -p try
 
 assert_exp 0 ""
 
+# definition error
+assert_error '
+typedef int t;
+int main() {
+  t t;
+  t = 3;
+  t u;  // error
+}
+'
+
 # 構造体
 assert 42 '
 struct foo {

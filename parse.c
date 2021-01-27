@@ -1096,6 +1096,14 @@ Node *stmt() {
       return stmt();
     } else {
       token = tok;
+
+      // variable
+      LVar *lvar = find_var_recursive(tok, locals);
+      if (lvar) {
+        node = expr();
+        expect(';');
+        return node;
+      }
     }
   }
   if (consume_token(kTokenReturn)) {
