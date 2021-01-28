@@ -428,7 +428,7 @@ void gen(Node *node) {
               }
               node_num = node_num->next;
             }
-          } else if (!node->is_extern) {
+          } else {
             is_bss = 1;
             bss_size =
                 get_type_size(node->type->ptr_to->ty) * node->type->array_size;
@@ -452,7 +452,7 @@ void gen(Node *node) {
                      node->lhs->rhs->lhs->name, node->lhs->rhs->lhs->len);
               }
             }
-          } else if (!node->is_extern) {
+          } else {
             is_bss = 1;
             bss_size = get_type_size(node->type->ty);
           }
@@ -476,7 +476,7 @@ void gen(Node *node) {
                      node->lhs->rhs->val);
                 break;
             }
-          } else if (!node->is_extern) {
+          } else {
             is_bss = 1;
             bss_size = get_type_size_by_type(node->type);
           }

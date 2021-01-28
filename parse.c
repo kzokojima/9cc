@@ -1023,7 +1023,11 @@ Node *variable_definition(Type *type, VarTable *var_table) {
   Token *tok = expect_ident();
   LVar *lvar = find_var(tok, var_table);
   if (lvar) {
-    error_at(tok->str, "定義済みの変数です");
+    if (type->is_extern && lvar->type->is_extern) {
+      return NULL;
+    } else if (! lvar->type->is_extern) {
+      error_at(tok->str, "定義済みの変数です");
+    }
   }
   node = calloc(1, sizeof(Node));
   node->kind = kNodeVarDef;
@@ -1442,6 +1446,7 @@ Node *global_definition() {
   if (!(type = parse_type())) {
     error_at(token->str, "定義ではありません");
   }
+  type->is_extern = is_extern;
   Token *tok = expect_ident();
   if (consume("(")) {
     // 関数定義
@@ -1507,9 +1512,8 @@ Node *global_definition() {
     // グローバル変数定義
     token = tok;
     node = variable_definition(type, globals);
-    node->is_extern = is_extern;
     expect(';');
-    return node;
+    return is_extern ? NULL : node;
   }
 }
 

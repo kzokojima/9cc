@@ -114,6 +114,7 @@ struct Type {
   size_t array_size;
   char *name;
   int name_len;
+  int is_extern;
 };
 
 // 文字列定数
@@ -144,7 +145,6 @@ struct Node {
   int lvar_size;  // ローカル変数サイズ
   Type *type;
   StringConstant *string_constant;
-  int is_extern;
 };
 
 typedef struct LVar LVar;
