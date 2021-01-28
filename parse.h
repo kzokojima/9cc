@@ -1,7 +1,7 @@
 #ifndef NINECC_PARSE_H_
 #define NINECC_PARSE_H_
 
-#include <stddef.h>
+#include "lib.h"
 
 typedef enum {
   kNodeAdd,
@@ -111,7 +111,7 @@ typedef struct Type Type;
 struct Type {
   TypeEnum ty;
   struct Type *ptr_to;
-  size_t array_size;
+  SIZE_T array_size;
   char *name;
   int name_len;
   int is_extern;

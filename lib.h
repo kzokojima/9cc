@@ -3,6 +3,8 @@
 
 #include <stdio.h>
 
+typedef unsigned long long SIZE_T;
+
 // 入力ファイル名
 extern char *filename;
 

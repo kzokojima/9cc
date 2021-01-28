@@ -77,7 +77,7 @@ void error_at(char *loc, char *fmt, ...) {
 
 char *read_file(char *filename, int buffer_size) {
   FILE *file;
-  size_t file_size;
+  SIZE_T file_size;
   char *buffer = malloc(buffer_size);
 
   if ((file = fopen(filename, "r")) == NULL) {

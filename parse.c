@@ -6,7 +6,6 @@
 #include <string.h>
 
 #include "enum.h"
-#include "lib.h"
 #include "macro.h"
 #include "struct.h"
 #include "typedef.h"
@@ -267,7 +266,7 @@ Token *tokenize() {
     if (keyword_len = expect_keyword(p, "#include")) {
       char *dest = p;
       p += keyword_len;
-      size_t len = strspn(p, " \t");
+      SIZE_T len = strspn(p, " \t");
       p += len;
       if (*p != '\"') {
         if (*p == '<') {
@@ -420,7 +419,7 @@ Token *tokenize() {
     }
 
     if (('A' <= *p && *p <= 'Z') || *p == '_' || ('a' <= *p && *p <= 'z')) {
-      size_t len = strspn(
+      SIZE_T len = strspn(
           p + 1,
           "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz");
       len++;
