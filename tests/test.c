@@ -3,6 +3,9 @@ test.c
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "fn.h"
 
 int assert_count = 0;
 #define assert(expr)                 \
@@ -686,8 +689,8 @@ void test_string(void) {
   { assert(12 == printf("hello, world")); }
   {
     char *p;
-    p = "hello, world";
-    assert(12 == printf(p));
+    p = "           %d";
+    assert(12 == printf(p, 1));
   }
   assert(15 == strlen("\"hello, world\\\""));
 }
@@ -1215,5 +1218,5 @@ int main() {
   test_ifndef_macro();
   test_typedef();
 
-  printf("test.c: OK (%d assertions)\n", assert_count);
+  printf("\ntest.c: OK (%d assertions)\n", assert_count);
 }

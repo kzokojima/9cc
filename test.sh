@@ -10,7 +10,7 @@ start=$(($(date +%s%N)/1000000))
 
 set -e
 ./9cc tests/test.c
-gcc -o tests/test tests/test.s fn.c
+gcc -o tests/test tests/test.s tests/fn.c
 ./tests/test
 set +e
 
@@ -45,7 +45,7 @@ assert() {
       exit 1
     fi
   fi
-  gcc $gcc_opt -o try/tmp try/tmp.s fn.c
+  gcc $gcc_opt -o try/tmp try/tmp.s tests/fn.c
   ./try/tmp
   actual="$?"
 
