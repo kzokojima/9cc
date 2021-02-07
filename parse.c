@@ -1024,7 +1024,7 @@ Node *variable_definition(Type *type, VarTable *var_table) {
   if (lvar) {
     if (type->is_extern && lvar->type->is_extern) {
       return NULL;
-    } else if (! lvar->type->is_extern) {
+    } else if (!lvar->type->is_extern) {
       error_at(tok->str, "定義済みの変数です");
     }
   }
