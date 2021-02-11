@@ -8,6 +8,8 @@ OBJS=$(SRCS:.c=.o)
 $(OBJS): *.h
 
 test: 9cc
+	$(CC) -o tests/9cc/test $(filter-out main.o, $(OBJS)) tests/9cc/test.c
+	./tests/9cc/test 
 	./test.sh
 
 clean:

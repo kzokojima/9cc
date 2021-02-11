@@ -3,7 +3,7 @@
 *.o
 tmp*
 a.out
-9cc
+/9cc
 tests/*.s
 tests/test
 tests/*/*.s

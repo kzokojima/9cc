@@ -35,7 +35,7 @@ void delete_macro_def(char *str, int len) {
       *prev = var->next;
       break;
     }
-    *prev = var;
+    prev = &var->next;
   }
 }
 
