@@ -94,64 +94,6 @@ int main() {
 }
 '
 
-# 構造体
-assert 42 '
-struct foo {
-  int i;
-};
-int main() {
-  struct foo val;
-  val.i = 42;
-  return val.i;
-}'
-assert 42 '
-struct foo {
-  int i;
-  int j;
-};
-int main() {
-  struct foo val;
-  val.i = 40;
-  val.j = 2;
-  print_int(val.i);
-  print_int(val.j);
-  return val.i + val.j;
-}'
-assert 42 '
-struct foo {
-  int i;
-  int *p;
-};
-int main() {
-  struct foo val;
-  val.i = 42;
-  val.p = &val.i;
-  return *val.p;
-}'
-assert 42 '
-struct foo {
-  int i;
-  int j;
-};
-int main() {
-  struct foo val;
-  struct foo *p = &val;
-  val.i = 40;
-  p->j = 2;
-  return p->i + p->j;
-}'
-assert 42 '
-struct foo {
-  int i;
-  int j;
-};
-int main() {
-  struct foo val;
-  int *p = &val.j;
-  val.i = 40;
-  *p = 2;
-  return val.i + *p;
-}'
 # 構造体(グローバル変数)
 assert 42 '
 struct foo {

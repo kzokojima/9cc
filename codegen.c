@@ -350,7 +350,9 @@ void gen(Node *node) {
       } else {
         var_node = node->lhs;
       }
-      if (var_node->kind == kNodeLocalVar || var_node->kind == kNodeGlobalVar) {
+      if (var_node->kind == kNodeLocalVar || var_node->kind == kNodeGlobalVar ||
+          var_node->kind == kNodeStructMember ||
+          var_node->kind == kNodeStructPointerMember) {
         gen_load(var_node->type->ptr_to);
       } else {
         emit("  mov rax, [rax]");

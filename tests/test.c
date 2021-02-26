@@ -751,6 +751,64 @@ void test_char_literal(void) {
   { assert(4 == sizeof('h')); }
 }
 
+struct st_1 {
+  int i;
+};
+struct st_2 {
+  int i;
+  int j;
+};
+struct st_3 {
+  int i;
+  int *p;
+};
+struct st_4 {
+  int i;
+  int j;
+};
+struct st_5 {
+  int i;
+  int j;
+};
+void test_struct() {
+  {
+    struct st_1 val;
+    val.i = 42;
+    assert(42 == val.i);
+  }
+  {
+    struct st_2 val;
+    val.i = 40;
+    val.j = 2;
+    print_int(val.i);
+    print_int(val.j);
+    assert(42 == val.i + val.j);
+  }
+  {
+    struct st_3 val;
+    struct st_3 *p;
+    val.i = 42;
+    val.p = &val.i;
+    p = &val;
+    assert(42 == *val.p);
+    assert(42 == *p->p);
+  }
+  {
+    struct st_4 val;
+    struct st_4 *p = &val;
+    val.i = 40;
+    p->j = 2;
+    assert(42 == p->i + p->j);
+  }
+  {
+    struct st_5 val;
+    int *p = &val.j;
+    val.i = 40;
+    *p = 2;
+    assert(42 == val.i + *p);
+  }
+}
+
 void test_unsigned(void) {
   {
     unsigned u1 = 4000000000;  // 4 billion
@@ -1202,6 +1260,7 @@ int main() {
   test_string();
   test_initialization();
   test_char_literal();
+  test_struct();
   test_unsigned();
   test_long_long();
   test_short();
